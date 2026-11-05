@@ -6,7 +6,7 @@ My global agent instructions and skills, linked into every agent tool on this ma
 ./setup.sh
 ```
 
-It symlinks each file to where the tools read it, installs dependencies, and pulls `.env.local` from env-manager on first run. It is safe to rerun. A real file in a target's place goes to the Trash first.
+It symlinks each file to where the tools read it and pulls `.env.local` from env-manager on first run. It is safe to rerun. A real file in a target's place goes to the Trash first.
 
 | File | Linked to |
 |---|---|

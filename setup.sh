@@ -41,9 +41,6 @@ for skill in "$repo"/skills/*/; do
 	link "skills/$name" ~/.agents/skills/"$name"
 done
 
-if [ ! -d "$repo/node_modules" ]; then
-	(cd "$repo" && bun install --frozen-lockfile)
-fi
 if [ ! -f "$repo/.env.local" ]; then
-	(cd "$repo" && env-manager down && env-manager gen)
+	(cd "$repo" && env-manager down)
 fi

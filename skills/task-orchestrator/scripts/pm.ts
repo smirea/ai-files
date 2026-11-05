@@ -31,9 +31,12 @@ if (!existsSync(envFile)) fail(`${envFile} is missing; run ${join(root, 'setup.s
 // Bun has already loaded the cwd's .env.local, which in an orchestrated repo may set the same names (empty in
 // its worktrees), so ai-files' values must override rather than fill in.
 Object.assign(process.env, parseEnv(readFileSync(envFile, 'utf8')));
-const { default: env } = (await import(join(root, 'env.ts'))) as {
-	default: { PROCRASTIMATE_API_URL: string; PROCRASTIMATE_TOKEN: string };
+const env = {
+	PROCRASTIMATE_API_URL: process.env.PROCRASTIMATE_API_URL ?? '',
+	PROCRASTIMATE_TOKEN: process.env.PROCRASTIMATE_TOKEN ?? '',
 };
+for (const [name, value] of Object.entries(env))
+	if (!value) fail(`${name} is empty in ${envFile}; run env-manager down in ${root}`);
 
 type Config = { project: string; gc: string; teardown: string; ship: string; body: string; repo: string };
 const configKeys = ['project', 'gc', 'teardown', 'ship'] as const;
