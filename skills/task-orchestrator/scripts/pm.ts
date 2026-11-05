@@ -22,6 +22,10 @@ import { parseArgs, parseEnv } from 'node:util';
 
 // The skill is reached through ~/.claude/skills and ~/.agents/skills symlinks, so resolve to the real checkout.
 const root = join(dirname(realpathSync(import.meta.path)), '../../..');
+const gitDirs = Bun.spawnSync(['git', 'rev-parse', '--absolute-git-dir', '--path-format=absolute', '--git-common-dir']);
+const [gitDir, commonDir] = gitDirs.stdout.toString().trim().split('\n');
+if (gitDirs.exitCode === 0 && gitDir !== commonDir)
+	fail('refusing to run in a linked worktree: only the orchestrator, in the main checkout, talks to the task API');
 const envFile = join(root, '.env.local');
 if (!existsSync(envFile)) fail(`${envFile} is missing; run ${join(root, 'setup.sh')}`);
 // Bun has already loaded the cwd's .env.local, which in an orchestrated repo may set the same names (empty in
