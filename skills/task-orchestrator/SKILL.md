@@ -2,7 +2,7 @@
 name: task-orchestrator
 description: T3 Code only. Act as project manager over the user's live ProcrastiMate tasks for the current repo. Triage the open tasks, ask about unclear ones, bundle the rest into jobs, and run each job as a T3 child task that ships and merges its own PR in its own worktree, then complete the tasks. Run only when the user invokes it, usually with no argument, which means the repo's configured project.
 disable-model-invocation: true
-argument-hint: [project name | task ids | label] [public link]
+argument-hint: "[project name | task ids | label] [public link]"
 ---
 
 **T3 Code only.** This playbook needs T3's orchestration tools (`delegate_task`, `task_status`, `t3_thread_send`, `t3_pending_request_*`). In any other harness, stop and tell the user.
