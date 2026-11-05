@@ -34,6 +34,21 @@ link claude/pstack-models.md ~/.claude/pstack-models.md
 link claude/hooks/no-agent-worktree.sh ~/.claude/hooks/no-agent-worktree.sh
 link claude/hooks/no-hook-skipping.ts ~/.claude/hooks/no-hook-skipping.ts
 
+register_hook() {
+	local settings=~/.claude/settings.json matcher="$1" command="$2"
+	[ -f "$settings" ] || echo '{}' > "$settings"
+	if jq -e --arg c "$command" 'any(.hooks.PreToolUse[]?.hooks[]?; .command == $c)' "$settings" >/dev/null; then
+		echo "ok      hook $command"
+		return
+	fi
+	jq --arg m "$matcher" --arg c "$command" '.hooks.PreToolUse += [{matcher: $m, hooks: [{type: "command", command: $c}]}]' "$settings" > "$settings.tmp"
+	mv "$settings.tmp" "$settings"
+	echo "added   hook $command"
+}
+
+register_hook 'Agent|Task' '$HOME/.claude/hooks/no-agent-worktree.sh'
+register_hook Bash 'bun --no-env-file "$HOME/.claude/hooks/no-hook-skipping.ts"'
+
 # Claude Code reads ~/.claude/skills; Codex reads ~/.agents/skills (and ~/.codex/skills, skipped so it doesn't list each skill twice).
 for skill in "$repo"/skills/*/; do
 	name="$(basename "$skill")"

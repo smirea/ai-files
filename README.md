@@ -12,7 +12,7 @@ It symlinks each file to where the tools read it and pulls `.env.local` from env
 |---|---|
 | `GLOBAL_AGENTS.md` | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.gemini/GEMINI.md` |
 | `claude/pstack-models.md` | `~/.claude/pstack-models.md` (imported by `GLOBAL_AGENTS.md`) |
-| `claude/hooks/*` | `~/.claude/hooks/` (registered in `~/.claude/settings.json`) |
+| `claude/hooks/*` | `~/.claude/hooks/` (`setup.sh` also registers each in `~/.claude/settings.json`) |
 | `skills/<name>/` | `~/.claude/skills/<name>` (Claude Code), `~/.agents/skills/<name>` (Codex) |
 
 A new skill only needs a folder under `skills/` and a rerun of `setup.sh`. A new link target goes in `setup.sh`.
