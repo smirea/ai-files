@@ -1,4 +1,4 @@
-#!/usr/bin/env -S bun --loader=:ts
+#!/usr/bin/env bun
 import { Command } from '@commander-js/extra-typings';
 import { existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, join } from 'node:path';
