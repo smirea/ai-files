@@ -63,7 +63,9 @@ function loadConfig(): Config {
 	for (const part of configParts)
 		if (!body.split('\n').includes(part)) fail(`${path}: needs a \`${part}\` heading`);
 	for (const key of ['gc', 'teardown', 'ship'] as const) {
-		const script = (meta[key] as string).split(' ').find(word => word.includes('/'));
+		const [program, ...words] = (meta[key] as string).split(' ');
+		if (!Bun.which(program!)) fail(`${path}: \`${key}\` runs ${program}, which isn't on PATH`);
+		const script = words.find(word => word.includes('/'));
 		if (script && !existsSync(join(repo, script))) fail(`${path}: \`${key}\` runs ${script}, which doesn't exist`);
 	}
 	if (Bun.spawnSync(['git', 'check-ignore', '-q', '.orchestrator'], { cwd: repo }).exitCode !== 0)

@@ -32,6 +32,7 @@ link GLOBAL_AGENTS.md ~/.config/opencode/AGENTS.md
 link GLOBAL_AGENTS.md ~/.gemini/GEMINI.md
 link claude/pstack-models.md ~/.claude/pstack-models.md
 link claude/hooks/no-agent-worktree.sh ~/.claude/hooks/no-agent-worktree.sh
+link claude/hooks/no-hook-skipping.ts ~/.claude/hooks/no-hook-skipping.ts
 
 # Claude Code reads ~/.claude/skills; Codex reads ~/.agents/skills (and ~/.codex/skills, skipped so it doesn't list each skill twice).
 for skill in "$repo"/skills/*/; do
