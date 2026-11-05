@@ -26,11 +26,11 @@ link() {
 	echo "linked  $target -> $source"
 }
 
-link AGENTS.md ~/.claude/CLAUDE.md
-link AGENTS.md ~/.codex/AGENTS.md
-link AGENTS.md ~/.config/opencode/AGENTS.md
-link AGENTS.md ~/.gemini/GEMINI.md
-link AGENTS.md ~/code/AGENTS.md
+link GLOBAL_AGENTS.md ~/.claude/CLAUDE.md
+link GLOBAL_AGENTS.md ~/.codex/AGENTS.md
+link GLOBAL_AGENTS.md ~/.config/opencode/AGENTS.md
+link GLOBAL_AGENTS.md ~/.gemini/GEMINI.md
+link GLOBAL_AGENTS.md ~/code/AGENTS.md
 link claude/pstack-models.md ~/.claude/pstack-models.md
 link claude/hooks/no-agent-worktree.sh ~/.claude/hooks/no-agent-worktree.sh
 
