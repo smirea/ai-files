@@ -8,4 +8,10 @@ Stefan's agent configuration for this machine, kept in one place and symlinked t
 - `package.json` holds the dependencies skill scripts import (commander for CLIs); `setup.sh` installs them.
 - `setup.sh` creates every link. Rerun it after adding a skill or a link target, and add the target to `setup.sh` and the README table.
 
+Scripts are run by agents that have never seen them, so each one must explain itself:
+
+- `--help` works on the script and on every command, and running it with no arguments or a bad one prints the relevant help. Build CLIs with commander (`@commander-js/extra-typings`), which does this.
+- Every command that writes, deletes, or has other side effects takes `--dry-run`: it does the reads, then prints the writes it would make, and makes none.
+- An error says what failed and how to fix it: the command to run, the file to edit, or the valid values.
+
 The paths elsewhere are symlinks into this repo, so an edit anywhere lands here. Single user, no PRs: commit to master and push. Secrets go in env-manager (project `ai-files`), never in git; the repo is public.

@@ -77,12 +77,26 @@ type Task = {
 type View = { projects: Named[]; labels: Named[]; sections: Named[]; tasks: Task[] };
 type Comment = { body: string; createdAt: number; author: { name: string; kind: string } };
 
+let dryRun = false;
+const plan: string[] = [];
+
+// Every write asks this first. Under --dry-run it records the write for the closing summary and returns true,
+// so the caller skips it; reads still run, so the plan matches what a real run would do now.
+function skipWrite(step: string): boolean {
+	if (dryRun) plan.push(step);
+	return dryRun;
+}
+
+const request = (method: string, path: string, body?: unknown) =>
+	`${method} ${path}${body === undefined ? '' : ` ${typeof body === 'string' ? body : JSON.stringify(body)}`}`;
+
 function fail(message: string): never {
 	console.error(`pm: ${message}`);
 	process.exit(1);
 }
 
 async function call(method: string, path: string, body?: unknown): Promise<Response> {
+	if (dryRun && method !== 'GET') throw new Error(`bug: ${request(method, path)} ran under --dry-run; gate it with skipWrite()`);
 	// Reads retry on transient errors; writes don't, because a retried write can land twice.
 	for (let attempt = 0; ; attempt++) {
 		try {
@@ -92,7 +106,13 @@ async function call(method: string, path: string, body?: unknown): Promise<Respo
 				body: body === undefined ? undefined : typeof body === 'string' ? body : JSON.stringify(body),
 			});
 			if (res.ok) return res;
-			const error = new Error(`${method} ${path}: ${res.status} ${await res.text()}`);
+			const hint =
+				res.status === 401
+					? `; the token may be stale: run env-manager down in ${root}, or check ${envFile}`
+					: res.status === 404
+						? '; check the id with `pm tasks <project>`, or the path with `pm GET /docs/agent`'
+						: '';
+			const error = new Error(`${method} ${path}: ${res.status} ${await res.text()}${hint}`);
 			if (method !== 'GET' || attempt >= 3 || res.status < 500) throw Object.assign(error, { final: true });
 		} catch (error) {
 			if (method !== 'GET' || attempt >= 3 || (error as { final?: boolean }).final) throw error;
@@ -103,11 +123,20 @@ async function call(method: string, path: string, body?: unknown): Promise<Respo
 
 const api = async <T>(method: string, path: string, body?: unknown) => (await call(method, path, body)).json() as T;
 const view = () => api<View>('GET', '/view');
-const link = async (id: string) => (await api<{ url: string }>('POST', '/links', { target: { kind: 'task', id } })).url;
+async function link(id: string): Promise<string> {
+	const body = { target: { kind: 'task', id } };
+	if (skipWrite(request('POST', '/links', body))) return '<link>';
+	return (await api<{ url: string }>('POST', '/links', body)).url;
+}
+
+function findTask(v: View, id: string): Task {
+	return v.tasks.find(t => t.id === id) ?? fail(`no task ${id}; \`pm tasks <project>\` lists open task ids`);
+}
 
 function projectId(v: View, nameOrId: string): string {
 	const matches = v.projects.filter(p => p.id === nameOrId || p.name === nameOrId);
-	if (matches.length !== 1) fail(`expected one project named ${nameOrId}, found ${matches.length}`);
+	if (matches.length !== 1)
+		fail(`expected one project named ${nameOrId}, found ${matches.length}; projects: ${v.projects.map(p => p.name).join(', ')}`);
 	return matches[0]!.id;
 }
 
@@ -118,11 +147,12 @@ function openTasks(v: View, project: string): Task[] {
 
 async function complete(task: string, pr: string, note: string) {
 	const { comments } = await api<{ comments: Comment[] }>('GET', `/comments?id=${task}`);
-	if (!comments.some(c => c.body.startsWith(pr)))
-		await api('POST', '/comments', { taskId: task, body: note ? `${pr}\n${note}` : pr });
-	if ((await view()).tasks.some(t => t.id === task && t.completedAt === null))
-		await call('POST', `/tasks/complete?id=${task}`);
-	console.log(`completed ${task}`);
+	const comment = { taskId: task, body: note ? `${pr}\n${note}` : pr };
+	if (!comments.some(c => c.body.startsWith(pr)) && !skipWrite(request('POST', '/comments', comment)))
+		await api('POST', '/comments', comment);
+	const open = findTask(await view(), task).completedAt === null;
+	if (open && !skipWrite(request('POST', `/tasks/complete?id=${task}`))) await call('POST', `/tasks/complete?id=${task}`);
+	if (!dryRun) console.log(`completed ${task}`);
 }
 
 const program = new Command('pm')
@@ -132,7 +162,12 @@ const program = new Command('pm')
 	)
 	.showHelpAfterError()
 	.showSuggestionAfterError()
-	.hook('preAction', loadEnv);
+	.hook('preAction', (_, command) => {
+		dryRun = command.opts().dryRun === true;
+		loadEnv();
+	});
+
+const dryRunHelp = 'do the reads, then print the writes it would make instead of making them';
 
 program
 	.command('check')
@@ -141,7 +176,9 @@ program
 		const { body, ...config } = loadConfig();
 		const projects = (await view()).projects;
 		if (!projects.some(p => p.name === config.project || p.id === config.project))
-			fail(`no ProcrastiMate project named ${config.project}`);
+			fail(
+				`no ProcrastiMate project named ${config.project}; fix \`project\` in .agents/task-orchestrator.md. Projects: ${projects.map(p => p.name).join(', ')}`,
+			);
 		console.log(JSON.stringify(config, null, 2));
 	});
 
@@ -188,6 +225,7 @@ program
 	.command('link')
 	.description('print "<id> <public read-only link>" per task')
 	.argument('<task...>', 'task ids')
+	.option('--dry-run', dryRunHelp)
 	.action(async tasks => {
 		for (const task of tasks) console.log(`${task} ${await link(task)}`);
 	});
@@ -200,7 +238,7 @@ program
 	.argument('<dir>', 'output directory, created if missing')
 	.action(async (task, dir) => {
 		mkdirSync(dir, { recursive: true });
-		const attachments = (await view()).tasks.find(t => t.id === task)?.attachments ?? fail(`no task ${task}`);
+		const { attachments } = findTask(await view(), task);
 		let n = 0;
 		for (const { id, name, bytes = 0 } of attachments) {
 			if (!name) {
@@ -231,19 +269,24 @@ program
 	.argument('<changes...>', '+name to add, -name to remove')
 	// Otherwise commander reads a -name change as an unknown option.
 	.allowUnknownOption()
+	.option('--dry-run', dryRunHelp)
 	.action(async (task, changes) => {
 		const v = await view();
-		const ids = new Set(v.tasks.find(t => t.id === task)?.labelIds ?? fail(`no task ${task}`));
+		const ids = new Set(findTask(v, task).labelIds);
 		for (const change of changes) {
 			if (!/^[+-]./.test(change)) fail(`label changes look like +name or -name, got '${change}'`);
 			const name = change.slice(1);
 			const id =
 				v.labels.find(l => l.name === name)?.id ??
-				fail(`no label '${name}'; the AI account can't create labels, ask Stefan to`);
+				fail(
+					`no label '${name}'; labels: ${v.labels.map(l => l.name).join(', ')}. The AI account can't create labels, so ask Stefan to`,
+				);
 			if (change[0] === '+') ids.add(id);
 			else ids.delete(id);
 		}
-		const updated = await api<Task>('PATCH', `/tasks?id=${task}`, { labelIds: [...ids] });
+		const body = { labelIds: [...ids] };
+		if (skipWrite(request('PATCH', `/tasks?id=${task}`, body))) return;
+		const updated = await api<Task>('PATCH', `/tasks?id=${task}`, body);
 		console.log(JSON.stringify({ id: updated.id, labelIds: updated.labelIds }));
 	});
 
@@ -256,6 +299,7 @@ program
 	.argument('[notes]')
 	.option('--section <id>', 'section id')
 	.option('--parent <id>', 'parent task id')
+	.option('--dry-run', dryRunHelp)
 	.action(async (project, title, notes, options) => {
 		const pid = projectId(await view(), project);
 		const find = async () =>
@@ -267,6 +311,12 @@ program
 			...(options.section && { sectionId: options.section }),
 			...(options.parent && { parentId: options.parent }),
 		};
+		if (dryRun) {
+			const existing = await find();
+			if (!existing) skipWrite(request('POST', '/tasks', body));
+			await link(existing ?? '<new task id>');
+			return;
+		}
 		const post = async () => (await api<{ id: string }>('POST', '/tasks', body)).id;
 		// A failed POST may still have created the task, so look again before the one retry.
 		const id = (await find()) ?? (await post().catch(find)) ?? (await post());
@@ -280,6 +330,7 @@ program
 	.argument('<task>', 'task id')
 	.argument('<pr>', 'pr url')
 	.argument('[note]', 'second line of the comment')
+	.option('--dry-run', dryRunHelp)
 	.action((task, pr, note) => complete(task, pr, note ?? ''));
 
 program
@@ -290,11 +341,13 @@ program
 	.argument('<worktree>', 'worktree path')
 	.argument('<task...>', 'task ids')
 	.option('--note <text>', 'second line of each completion comment')
+	.option('--dry-run', dryRunHelp)
 	.action(async (pr, worktree, tasks, options) => {
 		for (const task of tasks) await complete(task, pr, options.note ?? '');
 		// Teardown removes the worktree, so a rerun after it finished finds nothing left to remove.
 		if (existsSync(worktree)) {
 			const config = loadConfig();
+			if (skipWrite(`in ${config.repo}: ${config.teardown} ${JSON.stringify(worktree)}`)) return;
 			const teardown = Bun.spawnSync(['sh', '-c', `${config.teardown} "$1"`, 'teardown', worktree], {
 				cwd: config.repo,
 				stderr: 'inherit',
@@ -304,15 +357,21 @@ program
 		}
 	});
 
-for (const method of ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'])
-	program
+for (const method of ['GET', 'POST', 'PATCH', 'PUT', 'DELETE']) {
+	const raw = program
 		.command(method)
 		.description(`raw ${method} call${method === 'GET' ? '; `pm GET /docs/agent` is the full API guide' : ''}`)
 		.argument('<path>', 'e.g. /view')
 		.argument('[body]', 'JSON body, or - to read it from stdin')
 		.action(async (path, body) => {
-			const res = await call(method, path, body === '-' ? await Bun.stdin.text() : body);
+			const payload = body === '-' ? await Bun.stdin.text() : body;
+			if (method !== 'GET' && skipWrite(request(method, path, payload))) return;
+			const res = await call(method, path, payload);
 			process.stdout.write(await res.text());
 		});
+	if (method !== 'GET') raw.option('--dry-run', dryRunHelp);
+}
 
 await program.parseAsync().catch((error: Error) => fail(error.message));
+if (dryRun)
+	console.log(plan.length ? `dry run, would run:\n${plan.map(step => `  ${step}`).join('\n')}` : 'dry run: nothing to write');
