@@ -36,4 +36,4 @@ Decision docs, natural areas, shared work, human-only tasks, post-merge checks, 
 Setup, verification, PR, and after-merge rules for this repo. Wins over the shared brief.
 ```
 
-Run `bun ~/code/ai-files/skills/task-orchestrator/scripts/pm.ts check` from the repo's main checkout to validate it. `skills/task-orchestrator/scripts/pm.ts` reads the ProcrastiMate token from env-manager (`PROCRASTIMATE_TOKEN` in this repo's `.env.local`).
+Run `bun ~/code/ai-files/skills/task-orchestrator/scripts/pm.ts check` from the repo's main checkout to validate it; `pm.ts --help` and `pm.ts <command> --help` list the commands. `skills/task-orchestrator/scripts/pm.ts` reads the ProcrastiMate token from env-manager (`PROCRASTIMATE_TOKEN` in this repo's `.env.local`).

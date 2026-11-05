@@ -1,42 +1,29 @@
 #!/usr/bin/env bun
-// Calls ProcrastiMate's production agent API as the AI account. The token is env-manager's PROCRASTIMATE_TOKEN
-// in ai-files' .env.local. Repo commands run from the repo's main checkout and read its .agents/task-orchestrator.md.
-//   pm.ts check                                         validate the repo config and print it
-//   pm.ts <METHOD> <path> [json body | - for stdin]     raw call, e.g. pm.ts GET /view
-//   pm.ts complete <task id> <pr url> [note]            comment "<pr url>\n<note>", then complete; safe to rerun
-//   pm.ts file <project name or id> <title> [notes] [--section id] [--parent id]
-//                                                       add a task unless an open one in the project has this title;
-//                                                       prints "<id> <public link>"; safe to rerun
-//   pm.ts link <task id>...                             print "<id> <public read-only link>" per task
-//   pm.ts images <task id> <dir>                        download the task's images as <dir>/<task id>-<n>.<ext> and its files
-//                                                       as <dir>/<task id>-<name>, print paths
-//   pm.ts merged <pr url> <worktree> <task id>... [--note text]
-//                                                       complete each task with the PR, then tear down the worktree; safe to rerun
-//   pm.ts new <project name or id> <session file>       open tasks whose id prefix the session file doesn't mention
-//   pm.ts tasks <project name or id>                    open tasks with section, parent, priority, label names, notes
-//   pm.ts comments <task id>                            the task's comments, oldest first
-//   pm.ts label <task id> +<name>|-<name>...            add or remove labels by name, keeping the others
+import { Command } from '@commander-js/extra-typings';
 import { existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { parseArgs, parseEnv } from 'node:util';
+import { parseEnv } from 'node:util';
 
 // The skill is reached through ~/.claude/skills and ~/.agents/skills symlinks, so resolve to the real checkout.
 const root = join(dirname(realpathSync(import.meta.path)), '../../..');
-const gitDirs = Bun.spawnSync(['git', 'rev-parse', '--absolute-git-dir', '--path-format=absolute', '--git-common-dir']);
-const [gitDir, commonDir] = gitDirs.stdout.toString().trim().split('\n');
-if (gitDirs.exitCode === 0 && gitDir !== commonDir)
-	fail('refusing to run in a linked worktree: only the orchestrator, in the main checkout, talks to the task API');
 const envFile = join(root, '.env.local');
-if (!existsSync(envFile)) fail(`${envFile} is missing; run ${join(root, 'setup.sh')}`);
-// Bun has already loaded the cwd's .env.local, which in an orchestrated repo may set the same names (empty in
-// its worktrees), so ai-files' values must override rather than fill in.
-Object.assign(process.env, parseEnv(readFileSync(envFile, 'utf8')));
-const env = {
-	PROCRASTIMATE_API_URL: process.env.PROCRASTIMATE_API_URL ?? '',
-	PROCRASTIMATE_TOKEN: process.env.PROCRASTIMATE_TOKEN ?? '',
-};
-for (const [name, value] of Object.entries(env))
-	if (!value) fail(`${name} is empty in ${envFile}; run env-manager down in ${root}`);
+const env = { PROCRASTIMATE_API_URL: '', PROCRASTIMATE_TOKEN: '' };
+
+// Runs before every command's action, so help and usage errors work anywhere.
+function loadEnv() {
+	const gitDirs = Bun.spawnSync(['git', 'rev-parse', '--absolute-git-dir', '--path-format=absolute', '--git-common-dir']);
+	const [gitDir, commonDir] = gitDirs.stdout.toString().trim().split('\n');
+	if (gitDirs.exitCode === 0 && gitDir !== commonDir)
+		fail('refusing to run in a linked worktree: only the orchestrator, in the main checkout, talks to the task API');
+	if (!existsSync(envFile)) fail(`${envFile} is missing; run ${join(root, 'setup.sh')}`);
+	// Bun has already loaded the cwd's .env.local, which in an orchestrated repo may set the same names (empty in
+	// its worktrees), so ai-files' values must override rather than fill in.
+	Object.assign(process.env, parseEnv(readFileSync(envFile, 'utf8')));
+	for (const name of Object.keys(env) as (keyof typeof env)[]) {
+		env[name] = process.env[name] ?? '';
+		if (!env[name]) fail(`${name} is empty in ${envFile}; run env-manager down in ${root}`);
+	}
+}
 
 type Config = { project: string; gc: string; teardown: string; ship: string; body: string; repo: string };
 const configKeys = ['project', 'gc', 'teardown', 'ship'] as const;
@@ -138,158 +125,194 @@ async function complete(task: string, pr: string, note: string) {
 	console.log(`completed ${task}`);
 }
 
-const [command = '', ...args] = Bun.argv.slice(2);
-await run().catch((error: Error) => fail(error.message));
+const program = new Command('pm')
+	.description(
+		"Calls ProcrastiMate's production agent API as the AI account, with env-manager's PROCRASTIMATE_TOKEN from " +
+			`${envFile}.\nRepo commands run from the repo's main checkout and read its .agents/task-orchestrator.md.`,
+	)
+	.showHelpAfterError()
+	.showSuggestionAfterError()
+	.hook('preAction', loadEnv);
 
-async function run() {
-	switch (command) {
-		case 'check': {
-			const { body, ...config } = loadConfig();
-			const projects = (await view()).projects;
-			if (!projects.some(p => p.name === config.project || p.id === config.project))
-				fail(`no ProcrastiMate project named ${config.project}`);
-			console.log(JSON.stringify(config, null, 2));
-			break;
-		}
-		case 'complete': {
-			const [task, pr, note = ''] = args;
-			if (!task || !pr) fail('usage: pm.ts complete <task id> <pr url> [note]');
-			await complete(task, pr, note);
-			break;
-		}
-		case 'file': {
-			const { values, positionals } = parseArgs({
-				args,
-				allowPositionals: true,
-				options: { section: { type: 'string' }, parent: { type: 'string' } },
-			});
-			const [project, title, notes, ...extra] = positionals;
-			if (!project || !title || extra.length)
-				fail('usage: pm.ts file <project> <title> [notes] [--section id] [--parent id]');
-			const pid = projectId(await view(), project);
-			const find = async () =>
-				(await view()).tasks.find(t => t.projectId === pid && t.title === title && t.completedAt === null)?.id;
-			const body = {
-				projectId: pid,
-				title,
-				...(notes && { notes }),
-				...(values.section && { sectionId: values.section }),
-				...(values.parent && { parentId: values.parent }),
-			};
-			const post = async () => (await api<{ id: string }>('POST', '/tasks', body)).id;
-			// A failed POST may still have created the task, so look again before the one retry.
-			const id = (await find()) ?? (await post().catch(find)) ?? (await post());
-			console.log(`${id} ${await link(id)}`);
-			break;
-		}
-		case 'link':
-			for (const task of args) console.log(`${task} ${await link(task)}`);
-			break;
-		case 'images': {
-			const [task, dir] = args;
-			if (!task || !dir) fail('usage: pm.ts images <task id> <dir>');
-			mkdirSync(dir, { recursive: true });
-			const attachments = (await view()).tasks.find(t => t.id === task)?.attachments ?? fail(`no task ${task}`);
-			let n = 0;
-			for (const { id, name, bytes = 0 } of attachments) {
-				if (!name) {
-					const res = await call('GET', `/images?id=${id}&size=full`);
-					const ext = (res.headers.get('content-type') ?? 'image/jpeg').replace('image/', '').replace('jpeg', 'jpg');
-					const out = join(dir, `${task}-${++n}.${ext}`);
-					await Bun.write(out, res);
-					console.log(out);
-					continue;
-				}
-				const parts: ArrayBuffer[] = [];
-				for (let size = 0, part = 0; size < bytes; part++) {
-					const chunk = await (await call('GET', `/images?id=${id}&size=part${part}`)).arrayBuffer();
-					if (chunk.byteLength === 0) fail(`attachment ${id} ended at ${size} of ${bytes} bytes`);
-					parts.push(chunk);
-					size += chunk.byteLength;
-				}
-				const out = join(dir, `${task}-${name}`);
-				await Bun.write(out, new Blob(parts));
-				console.log(out);
-			}
-			break;
-		}
-		case 'merged': {
-			const { values, positionals } = parseArgs({
-				args,
-				allowPositionals: true,
-				options: { note: { type: 'string' } },
-			});
-			const [pr, worktree, ...tasks] = positionals;
-			if (!pr || !worktree || tasks.length === 0)
-				fail('usage: pm.ts merged <pr url> <worktree> <task id>... [--note text]');
-			for (const task of tasks) await complete(task, pr, values.note ?? '');
-			// Teardown removes the worktree, so a rerun after it finished finds nothing left to remove.
-			if (existsSync(worktree)) {
-				const config = loadConfig();
-				const teardown = Bun.spawnSync(['sh', '-c', `${config.teardown} "$1"`, 'teardown', worktree], {
-					cwd: config.repo,
-					stderr: 'inherit',
-				});
-				console.log(teardown.stdout.toString().trim().split('\n').at(-1));
-				if (teardown.exitCode !== 0) process.exit(teardown.exitCode);
-			}
-			break;
-		}
-		case 'new': {
-			const [project, session] = args;
-			if (!project || !session) fail('usage: pm.ts new <project> <session file>');
-			const known = readFileSync(session, 'utf8');
-			for (const t of openTasks(await view(), project)) if (!known.includes(t.id.slice(0, 8))) console.log(t.id);
-			break;
-		}
-		case 'tasks': {
-			const v = await view();
-			const names = (list: Named[]) => new Map(list.map(x => [x.id, x.name]));
-			const labels = names(v.labels);
-			const sections = names(v.sections);
-			for (const t of openTasks(v, args[0] ?? fail('usage: pm.ts tasks <project>'))) {
-				console.log(
-					`${t.id} p${t.priority} section=${sections.get(t.sectionId ?? '') ?? '-'} parent=${t.parentId ?? '-'}` +
-						` labels=${t.labelIds.map(id => labels.get(id)).join(',')} attachments=${t.attachments.length}`,
-				);
-				console.log(`  ${t.title}`);
-				if (t.notes) console.log(`  ${t.notes.replaceAll('\n', '\n  ')}`);
-			}
-			break;
-		}
-		case 'comments': {
-			const { comments } = await api<{ comments: Comment[] }>(
-				'GET',
-				`/comments?id=${args[0] ?? fail('usage: pm.ts comments <task id>')}`,
+program
+	.command('check')
+	.description("validate the repo's .agents/task-orchestrator.md and print it")
+	.action(async () => {
+		const { body, ...config } = loadConfig();
+		const projects = (await view()).projects;
+		if (!projects.some(p => p.name === config.project || p.id === config.project))
+			fail(`no ProcrastiMate project named ${config.project}`);
+		console.log(JSON.stringify(config, null, 2));
+	});
+
+program
+	.command('tasks')
+	.description('open tasks with section, parent, priority, label names, notes')
+	.argument('<project>', 'project name or id')
+	.action(async project => {
+		const v = await view();
+		const names = (list: Named[]) => new Map(list.map(x => [x.id, x.name]));
+		const labels = names(v.labels);
+		const sections = names(v.sections);
+		for (const t of openTasks(v, project)) {
+			console.log(
+				`${t.id} p${t.priority} section=${sections.get(t.sectionId ?? '') ?? '-'} parent=${t.parentId ?? '-'}` +
+					` labels=${t.labelIds.map(id => labels.get(id)).join(',')} attachments=${t.attachments.length}`,
 			);
-			for (const c of comments.toSorted((a, b) => a.createdAt - b.createdAt))
-				console.log(
-					`[${new Date(c.createdAt).toISOString().slice(0, 19)}Z ${c.author.name} (${c.author.kind})] ${c.body}`,
-				);
-			break;
+			console.log(`  ${t.title}`);
+			if (t.notes) console.log(`  ${t.notes.replaceAll('\n', '\n  ')}`);
 		}
-		case 'label': {
-			const [task, ...changes] = args;
-			const v = await view();
-			const ids = new Set(v.tasks.find(t => t.id === task)?.labelIds ?? fail(`no task ${task}`));
-			for (const change of changes) {
-				if (!/^[+-]./.test(change)) fail(`label changes look like +name or -name, got '${change}'`);
-				const name = change.slice(1);
-				const id =
-					v.labels.find(l => l.name === name)?.id ??
-					fail(`no label '${name}'; the AI account can't create labels, ask Stefan to`);
-				if (change[0] === '+') ids.add(id);
-				else ids.delete(id);
+	});
+
+program
+	.command('new')
+	.description("open tasks whose id prefix the session file doesn't mention")
+	.argument('<project>', 'project name or id')
+	.argument('<session>', 'session file')
+	.action(async (project, session) => {
+		const known = readFileSync(session, 'utf8');
+		for (const t of openTasks(await view(), project)) if (!known.includes(t.id.slice(0, 8))) console.log(t.id);
+	});
+
+program
+	.command('comments')
+	.description("the task's comments, oldest first")
+	.argument('<task>', 'task id')
+	.action(async task => {
+		const { comments } = await api<{ comments: Comment[] }>('GET', `/comments?id=${task}`);
+		for (const c of comments.toSorted((a, b) => a.createdAt - b.createdAt))
+			console.log(`[${new Date(c.createdAt).toISOString().slice(0, 19)}Z ${c.author.name} (${c.author.kind})] ${c.body}`);
+	});
+
+program
+	.command('link')
+	.description('print "<id> <public read-only link>" per task')
+	.argument('<task...>', 'task ids')
+	.action(async tasks => {
+		for (const task of tasks) console.log(`${task} ${await link(task)}`);
+	});
+
+program
+	.command('images')
+	.summary("download the task's images and files, print paths")
+	.description("download the task's images as <dir>/<task>-<n>.<ext> and its files as <dir>/<task>-<name>, print paths")
+	.argument('<task>', 'task id')
+	.argument('<dir>', 'output directory, created if missing')
+	.action(async (task, dir) => {
+		mkdirSync(dir, { recursive: true });
+		const attachments = (await view()).tasks.find(t => t.id === task)?.attachments ?? fail(`no task ${task}`);
+		let n = 0;
+		for (const { id, name, bytes = 0 } of attachments) {
+			if (!name) {
+				const res = await call('GET', `/images?id=${id}&size=full`);
+				const ext = (res.headers.get('content-type') ?? 'image/jpeg').replace('image/', '').replace('jpeg', 'jpg');
+				const out = join(dir, `${task}-${++n}.${ext}`);
+				await Bun.write(out, res);
+				console.log(out);
+				continue;
 			}
-			const updated = await api<Task>('PATCH', `/tasks?id=${task}`, { labelIds: [...ids] });
-			console.log(JSON.stringify({ id: updated.id, labelIds: updated.labelIds }));
-			break;
+			const parts: ArrayBuffer[] = [];
+			for (let size = 0, part = 0; size < bytes; part++) {
+				const chunk = await (await call('GET', `/images?id=${id}&size=part${part}`)).arrayBuffer();
+				if (chunk.byteLength === 0) fail(`attachment ${id} ended at ${size} of ${bytes} bytes`);
+				parts.push(chunk);
+				size += chunk.byteLength;
+			}
+			const out = join(dir, `${task}-${name}`);
+			await Bun.write(out, new Blob(parts));
+			console.log(out);
 		}
-		default: {
-			const [path, body] = args;
-			if (!/^[A-Z]+$/.test(command) || !path) fail('usage: pm.ts <METHOD> <path> [json body | -]');
-			const res = await call(command, path, body === '-' ? await Bun.stdin.text() : body);
+	});
+
+program
+	.command('label')
+	.description('add or remove labels by name, keeping the others')
+	.argument('<task>', 'task id')
+	.argument('<changes...>', '+name to add, -name to remove')
+	// Otherwise commander reads a -name change as an unknown option.
+	.allowUnknownOption()
+	.action(async (task, changes) => {
+		const v = await view();
+		const ids = new Set(v.tasks.find(t => t.id === task)?.labelIds ?? fail(`no task ${task}`));
+		for (const change of changes) {
+			if (!/^[+-]./.test(change)) fail(`label changes look like +name or -name, got '${change}'`);
+			const name = change.slice(1);
+			const id =
+				v.labels.find(l => l.name === name)?.id ??
+				fail(`no label '${name}'; the AI account can't create labels, ask Stefan to`);
+			if (change[0] === '+') ids.add(id);
+			else ids.delete(id);
+		}
+		const updated = await api<Task>('PATCH', `/tasks?id=${task}`, { labelIds: [...ids] });
+		console.log(JSON.stringify({ id: updated.id, labelIds: updated.labelIds }));
+	});
+
+program
+	.command('file')
+	.summary('add a task unless an open one has this title; safe to rerun')
+	.description('add a task unless an open one in the project has this title; prints "<id> <public link>"; safe to rerun')
+	.argument('<project>', 'project name or id')
+	.argument('<title>')
+	.argument('[notes]')
+	.option('--section <id>', 'section id')
+	.option('--parent <id>', 'parent task id')
+	.action(async (project, title, notes, options) => {
+		const pid = projectId(await view(), project);
+		const find = async () =>
+			(await view()).tasks.find(t => t.projectId === pid && t.title === title && t.completedAt === null)?.id;
+		const body = {
+			projectId: pid,
+			title,
+			...(notes && { notes }),
+			...(options.section && { sectionId: options.section }),
+			...(options.parent && { parentId: options.parent }),
+		};
+		const post = async () => (await api<{ id: string }>('POST', '/tasks', body)).id;
+		// A failed POST may still have created the task, so look again before the one retry.
+		const id = (await find()) ?? (await post().catch(find)) ?? (await post());
+		console.log(`${id} ${await link(id)}`);
+	});
+
+program
+	.command('complete')
+	.summary('comment the PR on the task, then complete it; safe to rerun')
+	.description('comment "<pr>\\n<note>" on the task, then complete it; safe to rerun')
+	.argument('<task>', 'task id')
+	.argument('<pr>', 'pr url')
+	.argument('[note]', 'second line of the comment')
+	.action((task, pr, note) => complete(task, pr, note ?? ''));
+
+program
+	.command('merged')
+	.summary('complete each task with the PR, then tear down the worktree; safe to rerun')
+	.description("complete each task with the PR, then run the repo config's teardown on the worktree; safe to rerun")
+	.argument('<pr>', 'pr url')
+	.argument('<worktree>', 'worktree path')
+	.argument('<task...>', 'task ids')
+	.option('--note <text>', 'second line of each completion comment')
+	.action(async (pr, worktree, tasks, options) => {
+		for (const task of tasks) await complete(task, pr, options.note ?? '');
+		// Teardown removes the worktree, so a rerun after it finished finds nothing left to remove.
+		if (existsSync(worktree)) {
+			const config = loadConfig();
+			const teardown = Bun.spawnSync(['sh', '-c', `${config.teardown} "$1"`, 'teardown', worktree], {
+				cwd: config.repo,
+				stderr: 'inherit',
+			});
+			console.log(teardown.stdout.toString().trim().split('\n').at(-1));
+			if (teardown.exitCode !== 0) process.exit(teardown.exitCode);
+		}
+	});
+
+for (const method of ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'])
+	program
+		.command(method)
+		.description(`raw ${method} call${method === 'GET' ? '; `pm GET /docs/agent` is the full API guide' : ''}`)
+		.argument('<path>', 'e.g. /view')
+		.argument('[body]', 'JSON body, or - to read it from stdin')
+		.action(async (path, body) => {
+			const res = await call(method, path, body === '-' ? await Bun.stdin.text() : body);
 			process.stdout.write(await res.text());
-		}
-	}
-}
+		});
+
+await program.parseAsync().catch((error: Error) => fail(error.message));
