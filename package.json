@@ -1,8 +1,0 @@
-{
-	"name": "ai-files",
-	"private": true,
-	"dependencies": {
-		"@commander-js/extra-typings": "15.0.0",
-		"commander": "15.0.0"
-	}
-}

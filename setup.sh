@@ -55,9 +55,3 @@ for skill in "$repo"/skills/*/; do
 	link "skills/$name" ~/.claude/skills/"$name"
 	link "skills/$name" ~/.agents/skills/"$name"
 done
-
-(cd "$repo" && bun install --frozen-lockfile --silent --no-env-file)
-
-if [ ! -f "$repo/.env.local" ]; then
-	(cd "$repo" && env-manager down)
-fi

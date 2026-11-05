@@ -6,7 +6,7 @@ My global agent instructions and skills, linked into every agent tool on this ma
 ./setup.sh
 ```
 
-It symlinks each file to where the tools read it and pulls `.env.local` from env-manager on first run. It is safe to rerun. A real file in a target's place goes to the Trash first.
+It symlinks each file to where the tools read it It is safe to rerun. A real file in a target's place goes to the Trash first.
 
 | File | Linked to |
 |---|---|
@@ -36,4 +36,4 @@ Decision docs, natural areas, shared work, human-only tasks, post-merge checks, 
 Setup, verification, PR, and after-merge rules for this repo. Wins over the shared brief.
 ```
 
-Run `~/code/ai-files/skills/task-orchestrator/scripts/procrastimate.ts check` from the repo's main checkout to validate it; `procrastimate.ts --help` and `procrastimate.ts <command> --help` list the commands. `skills/task-orchestrator/scripts/procrastimate` reads the ProcrastiMate token from env-manager (`PROCRASTIMATE_TOKEN` in this repo's `.env.local`).
+Run `~/code/ai-files/skills/task-orchestrator/scripts/check-config.ts` from the repo's main checkout to validate it. The skill reaches ProcrastiMate through `procrastimate`, a CLI on PATH from `~/code/scripts`.
