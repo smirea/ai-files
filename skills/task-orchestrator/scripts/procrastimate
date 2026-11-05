@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S bun --loader=:ts
 import { Command } from '@commander-js/extra-typings';
 import { existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -91,7 +91,7 @@ const request = (method: string, path: string, body?: unknown) =>
 	`${method} ${path}${body === undefined ? '' : ` ${typeof body === 'string' ? body : JSON.stringify(body)}`}`;
 
 function fail(message: string): never {
-	console.error(`pm: ${message}`);
+	console.error(`procrastimate: ${message}`);
 	process.exit(1);
 }
 
@@ -110,7 +110,7 @@ async function call(method: string, path: string, body?: unknown): Promise<Respo
 				res.status === 401
 					? `; the token may be stale: run env-manager down in ${root}, or check ${envFile}`
 					: res.status === 404
-						? '; check the id with `pm tasks <project>`, or the path with `pm GET /docs/agent`'
+						? '; check the id with `procrastimate tasks <project>`, or the path with `procrastimate GET /docs/agent`'
 						: '';
 			const error = new Error(`${method} ${path}: ${res.status} ${await res.text()}${hint}`);
 			if (method !== 'GET' || attempt >= 3 || res.status < 500) throw Object.assign(error, { final: true });
@@ -130,7 +130,7 @@ async function link(id: string): Promise<string> {
 }
 
 function findTask(v: View, id: string): Task {
-	return v.tasks.find(t => t.id === id) ?? fail(`no task ${id}; \`pm tasks <project>\` lists open task ids`);
+	return v.tasks.find(t => t.id === id) ?? fail(`no task ${id}; \`procrastimate tasks <project>\` lists open task ids`);
 }
 
 function projectId(v: View, nameOrId: string): string {
@@ -155,7 +155,7 @@ async function complete(task: string, pr: string, note: string) {
 	if (!dryRun) console.log(`completed ${task}`);
 }
 
-const program = new Command('pm')
+const program = new Command('procrastimate')
 	.description(
 		"Calls ProcrastiMate's production agent API as the AI account, with env-manager's PROCRASTIMATE_TOKEN from " +
 			`${envFile}.\nRepo commands run from the repo's main checkout and read its .agents/task-orchestrator.md.`,
@@ -360,7 +360,7 @@ program
 for (const method of ['GET', 'POST', 'PATCH', 'PUT', 'DELETE']) {
 	const raw = program
 		.command(method)
-		.description(`raw ${method} call${method === 'GET' ? '; `pm GET /docs/agent` is the full API guide' : ''}`)
+		.description(`raw ${method} call${method === 'GET' ? '; `procrastimate GET /docs/agent` is the full API guide' : ''}`)
 		.argument('<path>', 'e.g. /view')
 		.argument('[body]', 'JSON body, or - to read it from stdin')
 		.action(async (path, body) => {

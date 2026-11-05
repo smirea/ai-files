@@ -10,6 +10,7 @@ Stefan's agent configuration for this machine, kept in one place and symlinked t
 
 Scripts are run by agents that have never seen them, so each one must explain itself:
 
+- A script is an executable named for what it drives, with no extension. TypeScript ones start with `#!/usr/bin/env -S bun --loader=:ts`, because Bun reads an extensionless file as TSX otherwise.
 - `--help` works on the script and on every command, and running it with no arguments or a bad one prints the relevant help. Build CLIs with commander (`@commander-js/extra-typings`), which does this.
 - Every command that writes, deletes, or has other side effects takes `--dry-run`: it does the reads, then prints the writes it would make, and makes none.
 - An error says what failed and how to fix it: the command to run, the file to edit, or the valid values.
