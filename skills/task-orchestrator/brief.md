@@ -1,6 +1,6 @@
 # How to work
 
-You own this job end to end, through the merge. Stefan authorized you to merge your PR without asking.
+You own this job end to end: the PR, its checks, the merge, and master's runs after the merge. Stefan authorized you to merge your PR without asking. The orchestrator doesn't watch your PR or CI and learns only what your report says, so report `merged` only once master is green with your change in it.
 
 This file holds the rules every repo shares. The `# Worker` part of `.agents/task-orchestrator.md` in your worktree holds this repo's setup, verification, and shipping rules, and its frontmatter names the `ship` command. Read it right after this file. Where the two differ, the repo file wins.
 
@@ -38,11 +38,13 @@ This file holds the rules every repo shares. The `# Worker` part of `.agents/tas
   - `1`: fix the failing checks, or fix or answer each review thread and resolve it. Then push and rerun. If a failing check also fails on master or other PRs, rerun it once with `gh run rerun --failed`; if it fails again, fix it in this PR. End with `blocked` and the run link only when the cause is outside this repo.
   - `2`: another job landed first. Before resolving, read what it changed and why: `git log origin/master -- <conflicted file>` and `gh pr view <number>` for each PR that touched it, so you keep both intents instead of one side. Rebase onto `origin/master`, rerun only the checks that cover the conflicted files, push, rerun. During a rebase, `--theirs` is your branch and `--ours` is master.
   - `3`: rerun.
-- Wait on CI only with the `ship` command, never `gh run watch`. Treat review-bot comments skeptically: fix real bugs, and dismiss noise with a concrete reason in your reply.
+- Wait on PR checks only with the `ship` command, never `gh run watch`. Treat review-bot comments skeptically: fix real bugs, and dismiss noise with a concrete reason in your reply.
 - A job the brief marks as research, or "don't merge": open a draft PR, skip the `ship` command, and end with `needs_input`, the findings in `summary`, and the decisions you need in `questions`.
 
 ## After the merge
 
+- Master's runs for your merge are yours: CI, plus any post-merge run the `# Worker` part lists. Find them with `gh run list --branch master --commit "$(gh pr view --json mergeCommit -q .mergeCommit.oid)"`, and wait on each with `gh run watch <id> --exit-status` in the foreground with a 600000 ms tool timeout, rerunning it until it exits. A run a newer merge cancelled is replaced by that workflow's newest run on master, which includes your commit: wait on that one instead.
+- A red run is yours to fix, even when it comes from your merge combined with a sibling's (two PRs that each pass alone but both declare the same type). Fix it in a follow-up PR from your worktree, on a new branch off `origin/master`, shipped the same way, and put its URL in `summary`. End with `blocked` and the run link only when the cause is outside this repo.
 - A new setting: upload its values now, from your worktree. For each environment it needs, `env-manager env set dev` (or `prod`), which downloads that environment's real values over your placeholders, set the value in the root `.env.local`, then `env-manager up`. Never `up` without that `env set` first: it would upload the schema defaults over the real values. Both commands make a local "chore: env manager update" commit; never push it, since teardown deletes the branch. The `# Worker` part says how this repo syncs a setting to its hosts. A value only Stefan has (a key from a dashboard) is a `needs_input` instead.
 - Clean up what you started: stop your servers by pid, close any `agent-device` session, shut your simulator down with `device_close`, and `trash` scratch files outside the worktree. Leave the worktree, the simulators it claimed, its data, and its branches: the orchestrator's teardown removes them.
 

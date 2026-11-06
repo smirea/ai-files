@@ -30,10 +30,10 @@ ship: <command that drives a PR to merge; last line `pr-ship exit <0-3>`>
 ---
 
 # Orchestrator
-Decision docs, natural areas, shared work, human-only tasks, post-merge checks, known shared failures.
+Decision docs, natural areas, shared work, human-only tasks, known shared failures.
 
 # Worker
-Setup, verification, PR, and after-merge rules for this repo. Wins over the shared brief.
+Setup, verification, PR, and after-merge rules for this repo, including the post-merge runs a child waits on. Wins over the shared brief.
 ```
 
 Run `~/code/ai-files/skills/task-orchestrator/scripts/check-config.ts` from the repo's main checkout to validate it. The skill reaches ProcrastiMate through `procrastimate`, a CLI on PATH from `~/code/scripts`.
