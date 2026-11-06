@@ -39,6 +39,8 @@ Worktrees and simulators in T3 Code:
 - Yours: never create worktrees yourself (`git worktree add`, the `Agent` tool's isolation); use `delegate_task` with `isolation: "worktree"`. If `agent-t3-worktree check` fails, fix what it prints. Before your last turn, stop servers you started and trash your `/tmp` scratch. Leave the tree clean: an untracked file keeps the worktree from being removed.
 - iOS: `agent-simulator udid` prints your worktree's simulator, and boots wait for room on the Mac (exit 3 means rerun). Drive it only with the command `device_open` returns, tapping by label (`press 'label="Save"' --settle`), never with a wrapper of your own.
 
+When you mention a ProcrastiMate task to me (in chat, a PR, a commit, a doc, or a task comment), write it as a markdown link with the task's title as the text, pointing at the task in the app: `[<title>](https://procrastimate.stf.lol/inbox?task=<id>)`. `procrastimate ref <id>...` prints these, and `procrastimate tasks <project>` already shows each title that way. I'm always signed in, so never use a bare task id or a public link (`procrastimate link`, `POST /links`) for me. Publish a public link only when I ask to share a task with someone else.
+
 Never create a GitHub issue unless I explicitly told you to, in this conversation or in the repo's own instructions (its AGENTS.md, CLAUDE.md, or skills). Delegated children follow the same rule. Never file a bug report on a repo I don't own, such as an upstream tool or library; mention it in one short line only if it blocked you or is a meaningful bug, otherwise skip it.
 
 FYI: GitHub CLI now supports image uploads if needed via `gh issue create|edit|comment --attach ./img.png#alt`
