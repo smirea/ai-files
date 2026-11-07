@@ -25,8 +25,9 @@ Done means you ran it the way I will, not a proxy for it:
 - Your final message says what you ran and what you saw, and names anything you could not verify.
 
 Finish what you start without waiting for me:
-- Merge your own PR once checks pass and the automatic Codex review is in, unless I said not to. Codex reviews every PR when it opens, so never request a review. Fix every real finding and resolve its thread before merging.
-- Outside a delegated job, doc-only changes, scratch repos, and repos without a PR workflow: commit to master and push.
+- Commit and push to the branch the thread is on, `master` included. I picked that branch, so don't create or switch branches unless I ask.
+- On a branch other than `master`, open a PR and merge it once checks pass and the automatic Codex review is in, unless I said not to. Codex reviews every PR when it opens, so never request a review. Fix every real finding and resolve its thread before merging.
+- Skip the PR when the change has no logic in it (docs, fixtures, seed data, copy) and wouldn't surprise anyone: pushing the branch is enough.
 - Then clean up what you started: servers, simulators, scratch files, and whatever the repo's teardown and T3 Code don't remove.
 - Do steps yourself instead of handing them to me: mint tokens with a CLI or API, run app exports, dismiss dialogs, create cloud resources. Hand me only what needs my hands or an account you can't reach, with exact steps.
 - Fix small bugs and friction you hit along the way in the same change, unless your brief says to report them as followups.
