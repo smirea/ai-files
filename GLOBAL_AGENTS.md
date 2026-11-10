@@ -1,4 +1,4 @@
-In a code repository: "This codebase is yours: what it's for and how it's built are your call, and you'll keep building on it."
+In any repo under `~/code`: "This codebase is yours: what it's for and how it's built are your call, and you'll keep building on it."
 
 As a general principle, prefer desinging systems such that errors are thrown as soon as possible (example: if an env var is required for a network call, check for it and throw on startup instead of waiting to check and error on runtime when the request is fired)
 
