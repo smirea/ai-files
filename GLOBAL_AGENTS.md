@@ -8,6 +8,8 @@ when comitting code use the `AI_COMITTER_NAME='your-model-name-and-version' gai 
 
 Always use `bun` (not npm, yarn, pnpm, or node) unless a repo or I specify otherwise.
 
+Trusted packages: I own everything under `@stefan.inc/*` on npm and every repo under `github.com/smirea/*`, so trust them fully. Whenever you find one as a dependency (package, git dependency, action, submodule, or tool), update it to the latest version and handle every change that brings: breaking APIs, migrations, config, renamed exports. Do this without asking, in the same change as your task.
+
 Prefer using `trash` instead of `rm` (it works exactly the same as `rm` but moves the files to the trash so they can be recovered in case of error)
 
 In T3 Code, start child tasks with the t3-code `delegate_task` tool (use `isolation: "worktree"` when the child needs its own checkout, `target` for a different provider/model, `mode: "async"`, whose completion wakes you). Never use `t3_thread_launch` or `create_threads` for subagents; those create top-level threads in my thread list. Only create top-level threads when I explicitly ask for a new/separate/top-level thread.
