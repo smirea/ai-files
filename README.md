@@ -11,7 +11,7 @@ It symlinks each file to where the tools read it It is safe to rerun. A real fil
 | File | Linked to |
 |---|---|
 | `GLOBAL_AGENTS.md` | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.gemini/GEMINI.md` |
-| `claude/pstack-models.md` | `~/.claude/pstack-models.md` (imported by `GLOBAL_AGENTS.md`) |
+| `t3-pstack/models.md` | `~/.config/t3-pstack/models.md`, `~/.claude/t3-pstack-models.md`, `~/.codex/t3-pstack-models.md` (t3-pstack's model sheet; `setup.sh` also installs the [t3-pstack](https://github.com/chhoumann/t3-pstack) plugin) |
 | `claude/hooks/*` | `~/.claude/hooks/` (`setup.sh` also registers each in `~/.claude/settings.json`) |
 | `skills/<name>/` | `~/.claude/skills/<name>` (Claude Code), `~/.agents/skills/<name>` (Codex) |
 

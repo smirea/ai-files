@@ -30,7 +30,10 @@ link GLOBAL_AGENTS.md ~/.claude/CLAUDE.md
 link GLOBAL_AGENTS.md ~/.codex/AGENTS.md
 link GLOBAL_AGENTS.md ~/.config/opencode/AGENTS.md
 link GLOBAL_AGENTS.md ~/.gemini/GEMINI.md
-link claude/pstack-models.md ~/.claude/pstack-models.md
+link t3-pstack/models.md ~/.config/t3-pstack/models.md
+# Older t3-pstack releases read the sheet from each host's config dir.
+link t3-pstack/models.md ~/.claude/t3-pstack-models.md
+link t3-pstack/models.md ~/.codex/t3-pstack-models.md
 link claude/hooks/no-agent-worktree.sh ~/.claude/hooks/no-agent-worktree.sh
 link claude/hooks/no-hook-skipping.ts ~/.claude/hooks/no-hook-skipping.ts
 
@@ -55,3 +58,7 @@ for skill in "$repo"/skills/*/; do
 	link "skills/$name" ~/.claude/skills/"$name"
 	link "skills/$name" ~/.agents/skills/"$name"
 done
+
+# Installs or updates the t3-pstack plugin in every Claude Code and Codex home T3 runs, and trusts its Codex hook.
+# npm 12 refuses git packages unless --allow-git is passed.
+npx --allow-git=all -y github:chhoumann/t3-pstack install
