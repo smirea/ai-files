@@ -1,0 +1,5 @@
+{
+  "serverExposureMode": "network-accessible",
+  "tailscaleServeEnabled": true,
+  "updateChannelConfiguredByUser": true
+}

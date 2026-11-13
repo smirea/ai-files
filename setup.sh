@@ -36,21 +36,31 @@ link t3-pstack/models.md ~/.claude/t3-pstack-models.md
 link t3-pstack/models.md ~/.codex/t3-pstack-models.md
 link claude/hooks/no-agent-worktree.sh ~/.claude/hooks/no-agent-worktree.sh
 link claude/hooks/no-hook-skipping.ts ~/.claude/hooks/no-hook-skipping.ts
+t3_userdata="${T3CODE_HOME:-$HOME/.t3}/userdata"
+link t3/settings.json "$t3_userdata/settings.json"
+link t3/client-settings.json "$t3_userdata/client-settings.json"
+link t3/keybindings.json "$t3_userdata/keybindings.json"
+link t3/pre-commit "$repo/.git/hooks/pre-commit"
 
 register_hook() {
-	local settings=~/.claude/settings.json matcher="$1" command="$2"
+	local settings=~/.claude/settings.json event="$1" matcher="$2" command="$3" timeout="${4:-}"
 	[ -f "$settings" ] || echo '{}' > "$settings"
-	if jq -e --arg c "$command" 'any(.hooks.PreToolUse[]?.hooks[]?; .command == $c)' "$settings" >/dev/null; then
+	if jq -e --arg e "$event" --arg c "$command" 'any(.hooks[$e][]?.hooks[]?; .command == $c)' "$settings" >/dev/null; then
 		echo "ok      hook $command"
 		return
 	fi
-	jq --arg m "$matcher" --arg c "$command" '.hooks.PreToolUse += [{matcher: $m, hooks: [{type: "command", command: $c}]}]' "$settings" > "$settings.tmp"
+	jq --arg e "$event" --arg m "$matcher" --arg c "$command" --arg t "$timeout" '
+		.hooks[$e] += [(if $m == "" then {} else {matcher: $m} end)
+			+ {hooks: [{type: "command", command: $c} + (if $t == "" then {} else {timeout: ($t | tonumber)} end)]}]
+	' "$settings" > "$settings.tmp"
 	mv "$settings.tmp" "$settings"
 	echo "added   hook $command"
 }
 
-register_hook 'Agent|Task' '$HOME/.claude/hooks/no-agent-worktree.sh'
-register_hook Bash 'bun --no-env-file "$HOME/.claude/hooks/no-hook-skipping.ts"'
+register_hook PreToolUse 'Agent|Task' '$HOME/.claude/hooks/no-agent-worktree.sh'
+register_hook PreToolUse Bash 'bun --no-env-file "$HOME/.claude/hooks/no-hook-skipping.ts"'
+# Repairs a T3 worktree whose setup is missing (dependencies, ports, env files) before the session starts.
+register_hook SessionStart '' '"$HOME/bin/agent-t3-worktree" check --heal --quiet' 600
 
 # Claude Code reads ~/.claude/skills; Codex reads ~/.agents/skills (and ~/.codex/skills, skipped so it doesn't list each skill twice).
 for skill in "$repo"/skills/*/; do
@@ -62,3 +72,5 @@ done
 # Installs or updates the t3-pstack plugin in every Claude Code and Codex home T3 runs, and trusts its Codex hook.
 # npm 12 refuses git packages unless --allow-git is passed.
 npx --allow-git=all -y github:chhoumann/t3-pstack install
+
+"$repo/t3/sync.ts" apply

@@ -1,0 +1,230 @@
+{
+  "favorites": [
+    {
+      "provider": "codex",
+      "model": "gpt-5.5"
+    },
+    {
+      "provider": "claudeAgent",
+      "model": "claude-opus-5-5"
+    },
+    {
+      "provider": "claudeAgent",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "provider": "claudeAgent",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "provider": "codex",
+      "model": "gpt-6-astra"
+    },
+    {
+      "provider": "codex",
+      "model": "gpt-6.1-sol"
+    },
+    {
+      "provider": "codex",
+      "model": "gpt-6.1-terra"
+    },
+    {
+      "provider": "claudeAgent",
+      "model": "claude-fable-5-2"
+    }
+  ],
+  "providerModelPreferences": {
+    "cursor": {
+      "hiddenModels": [
+        "default",
+        "grok-4.6",
+        "claude-opus-5-5",
+        "claude-opus-5",
+        "claude-opus-4-8",
+        "gemini-4-argon",
+        "muse-wonder-1.0",
+        "gpt-5.6-sol",
+        "gpt-5.5",
+        "claude-fable-5-1",
+        "claude-fable-5",
+        "grok-4.5",
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "muse-spark-1.3",
+        "gpt-5.6-terra",
+        "claude-sonnet-5-5",
+        "claude-sonnet-5",
+        "claude-sonnet-4-6",
+        "gpt-5.3-codex",
+        "claude-opus-4-7",
+        "gpt-5.4",
+        "claude-opus-4-6",
+        "claude-opus-4-5",
+        "gpt-5.2",
+        "gpt-5.6-luna",
+        "gemini-3.6-flash",
+        "gemini-3.1-pro",
+        "gpt-5.4-mini",
+        "gpt-5.4-nano",
+        "claude-haiku-5-5",
+        "claude-haiku-4-5",
+        "claude-sonnet-4-5",
+        "gpt-5.1",
+        "gemini-3-flash",
+        "gemini-3.5-flash",
+        "claude-sonnet-4",
+        "gpt-5-mini",
+        "gemini-2.5-flash",
+        "kimi-k3",
+        "kimi-k2.7-code",
+        "glm-5.2",
+        "glm-5p3",
+        "glm-5p3-flash",
+        "deepseek-v41-flash-1017",
+        "grok-4.7"
+      ],
+      "modelOrder": []
+    },
+    "antigravity": {
+      "hiddenModels": [
+        "claude-opus-5-5",
+        "claude-sonnet-5-5",
+        "gpt-oss-120b-medium"
+      ],
+      "modelOrder": []
+    }
+  },
+  "storageCleanup": {
+    "worktreeAfterDays": 3,
+    "worktreeOnMerge": true,
+    "worktreeOnDelete": true,
+    "worktreeUnchanged": true,
+    "browserArtifactsAfterDays": 30
+  },
+  "defaultAutoPull": true,
+  "defaultProjectScripts": [
+    {
+      "id": "setup-worktree",
+      "name": "Setup worktree",
+      "command": "\"$HOME/bin/agent-t3-worktree\" setup",
+      "icon": "configure",
+      "runOnWorktreeCreate": true,
+      "async": false
+    },
+    {
+      "id": "settle-worktree",
+      "name": "Settle worktree",
+      "command": "\"$HOME/bin/agent-t3-worktree\" settle",
+      "icon": "configure",
+      "runOnWorktreeCreate": false,
+      "runOnSettle": true,
+      "async": false
+    }
+  ],
+  "projectAutoPullOverrides": {
+    "c04065cf-6945-4aa4-8e95-0a5e3b1b0d18": true
+  },
+  "defaultModelSelection": {
+    "instanceId": "claudeAgent",
+    "model": "claude-opus-5-5",
+    "options": [
+      {
+        "id": "effort",
+        "value": "high"
+      }
+    ]
+  },
+  "projectSettingsOverrides": {
+    "c04065cf-6945-4aa4-8e95-0a5e3b1b0d18": {
+      "defaultModelSelection": {
+        "instanceId": "claudeAgent",
+        "model": "claude-opus-5-5"
+      },
+      "defaultThreadEnvMode": "worktree",
+      "defaultAutoPull": true,
+      "pullRequestMergeMethod": "squash"
+    },
+    "dca86e06-ef94-4c98-bbe2-e16799a31fd8": {
+      "defaultThreadEnvMode": "local"
+    },
+    "fee1e0a3-86af-4f99-b904-908657eaa9d9": {
+      "defaultModelSelection": {
+        "instanceId": "claudeAgent",
+        "model": "claude-fable-5-2",
+        "options": [
+          {
+            "id": "effort",
+            "value": "high"
+          }
+        ]
+      },
+      "defaultThreadEnvMode": "local",
+      "sidebarAutoSettleAfterDays": null
+    },
+    "da23b5be-93f6-4a46-b103-615402bfb448": {
+      "defaultThreadEnvMode": "worktree"
+    },
+    "acdb8d8d-5b62-452f-a233-587871aa0fcb": {
+      "sidebarAutoSettleOnMerge": false
+    }
+  },
+  "projectSettingsFolded": true,
+  "enableAgentDeviceAccess": true,
+  "enableDeviceSupport": true,
+  "deviceOnboardingCompleted": true,
+  "sidebarAutoSettleAfterDays": null,
+  "idleCompaction": "onReturn",
+  "snoozeLimitedThreads": true,
+  "autoResumeLimitedThreads": true,
+  "sidebarAutoSettleOnMerge": false,
+  "defaultThreadEnvMode": "local",
+  "addProjectBaseDirectory": "~/code",
+  "branchNamePrefix": "",
+  "sourceControlWritingStyle": {
+    "mode": "conventional_commits"
+  },
+  "providerInstances": {
+    "cursor": {
+      "driver": "cursor",
+      "enabled": true,
+      "config": {
+        "binaryPath": "cursor-agent",
+        "apiEndpoint": "",
+        "customModels": []
+      }
+    },
+    "grok": {
+      "driver": "grok",
+      "enabled": true,
+      "config": {
+        "binaryPath": "grok",
+        "customModels": []
+      }
+    },
+    "opencode": {
+      "driver": "opencode",
+      "enabled": false,
+      "config": {
+        "binaryPath": "opencode",
+        "serverUrl": "",
+        "serverPassword": "",
+        "customModels": []
+      }
+    },
+    "antigravity": {
+      "driver": "antigravity",
+      "displayName": "Antigravity",
+      "enabled": true
+    }
+  },
+  "sourceControlHosts": {
+    "github": {
+      "hosts": {
+        "github.com": {
+          "enabled": true,
+          "account": "smirea"
+        }
+      }
+    }
+  }
+}
