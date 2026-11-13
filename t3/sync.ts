@@ -37,7 +37,14 @@ type JsonObject = { [key: string]: Json };
 type ProjectOverrides = { [pathHash: string]: Partial<Record<(typeof projectKeys)[number], Json>> };
 
 const readJson = <T = JsonObject>(path: string): T => JSON.parse(readFileSync(path, 'utf8'));
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+const canonical = (value: unknown): unknown =>
+	Array.isArray(value)
+		? value.map(canonical)
+		: value !== null && typeof value === 'object'
+			? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, canonical(v)]))
+			: value;
+// T3 reorders keys when it rewrites a file, so key order is not a change.
+const same = (a: unknown, b: unknown) => JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
 const sortKeys = <T>(record: Record<string, T>) => Object.fromEntries(Object.entries(record).sort(([a], [b]) => a.localeCompare(b)));
 
 // Writes through a symlink, so a link into this repo survives.
