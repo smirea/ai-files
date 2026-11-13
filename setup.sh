@@ -65,15 +65,5 @@ register_hook PreToolUse Bash 'bun --no-env-file "$HOME/.claude/hooks/no-hook-sk
 # Repairs a T3 worktree whose setup is missing (dependencies, ports, env files) before the session starts.
 register_hook SessionStart '' '"$HOME/bin/agent-t3-worktree" check --heal --quiet' 600
 
-# Claude Code reads ~/.claude/skills; Codex reads ~/.agents/skills (and ~/.codex/skills, skipped so it doesn't list each skill twice).
-for skill in "$repo"/skills/*/; do
-	name="$(basename "$skill")"
-	link "skills/$name" ~/.claude/skills/"$name"
-	link "skills/$name" ~/.agents/skills/"$name"
-done
-
-# Installs or updates the t3-pstack plugin in every Claude Code and Codex home T3 runs, and trusts its Codex hook.
-# npm 12 refuses git packages unless --allow-git is passed.
-npx --allow-git=all -y github:chhoumann/t3-pstack install
-
+"$repo/setup-skills.ts"
 "$repo/t3/sync.ts" apply
