@@ -28,7 +28,7 @@ It symlinks each file to where the tools read it, installs the global skills, an
 | `frontend-design` | Claude Code plugin (turned off in Codex) |
 | `cua-driver` | `cua-driver skills install`, which links its pack into each agent |
 
-Each run updates the marketplaces and plugins, and moves anything else in those skill directories to the Trash, along with any plugin or marketplace the script doesn't list. It leaves Codex's built-in `openai-*` plugins and Claude Code's `~/.claude/skills/synced` (skills synced from claude.ai) alone. To add a skill, add its plugin and marketplace to `setup-skills.ts`, or a folder under `skills/`, and rerun. `--dry-run` prints what would change.
+Each run updates the marketplaces and plugins, and moves anything else in those skill directories to the Trash, along with any plugin or marketplace the script doesn't list. It leaves Codex's own `openai-*` plugins alone (they ship with the app or come with the ChatGPT account), except that it turns `presentations` off, and leaves Claude Code's `~/.claude/skills/synced` (skills synced from claude.ai) alone. To add a skill, add its plugin and marketplace to `setup-skills.ts`, or a folder under `skills/`, and rerun. `--dry-run` prints what would change.
 
 ## T3 Code
 

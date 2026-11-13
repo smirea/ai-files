@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { existsSync, lstatSync, mkdirSync, readdirSync, readlinkSync, symlinkSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, readlinkSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -35,6 +35,9 @@ const codexMarketplaces: Record<string, string> = {
 // frontend-design is Claude-only on purpose: it was turned off in Codex.
 const claudePlugins = ['frontend-design@claude-plugins-official', 'sentry@claude-plugins-official', 'cloudflare@cloudflare', 'untangle-codebase@caldo-skills'];
 const codexPlugins = ['sentry@sentry-plugin-marketplace', 'cloudflare@cloudflare', 'untangle-codebase@caldo-skills'];
+// Plugins from Codex's own marketplaces (openai-*) ship with the app or come with the ChatGPT account, so they
+// are left alone, except the ones turned off here.
+const codexDisabledPlugins = ['presentations@openai-primary-runtime'];
 // Installed and updated by its own installer below, so only kept here, never removed.
 const T3_PSTACK = 't3-pstack';
 
@@ -144,18 +147,36 @@ function syncCodex() {
 		.slice(1)
 		.map(line => line.split(/\s+/)[0])
 		.filter(Boolean);
-	const installed = [...run(['codex', 'plugin', 'list'], { mutates: false }).matchAll(/^(\S+@\S+)\s+installed/gm)].map(match => match[1]);
-	const builtIn = (marketplace: string) => marketplace.startsWith('openai-');
-	const keep = (id: string) => codexPlugins.includes(id) || builtIn(id.split('@')[1]) || id.endsWith(`@${T3_PSTACK}`);
+	const installed = new Map(
+		[...run(['codex', 'plugin', 'list'], { mutates: false }).matchAll(/^(\S+@\S+)\s+installed, (enabled|disabled)/gm)].map(match => [match[1], match[2] === 'enabled']),
+	);
+	const keep = (id: string) => codexPlugins.includes(id) || id.split('@')[1].startsWith('openai-') || id.endsWith(`@${T3_PSTACK}`);
 
-	for (const id of installed.filter(id => !keep(id))) run(['codex', 'plugin', 'remove', id]);
-	for (const name of marketplaces.filter(name => !builtIn(name) && !(name in codexMarketplaces) && name !== T3_PSTACK))
+	for (const id of [...installed.keys()].filter(id => !keep(id))) run(['codex', 'plugin', 'remove', id]);
+	for (const name of marketplaces.filter(name => !name.startsWith('openai-') && !(name in codexMarketplaces) && name !== T3_PSTACK))
 		run(['codex', 'plugin', 'marketplace', 'remove', name]);
 	for (const [name, source] of Object.entries(codexMarketplaces))
 		if (!marketplaces.includes(name)) run(['codex', 'plugin', 'marketplace', 'add', source]);
 	run(['codex', 'plugin', 'marketplace', 'upgrade']);
 	// Adding an installed plugin reinstalls it from the upgraded marketplace, which is how Codex updates one.
 	for (const id of codexPlugins) run(['codex', 'plugin', 'add', id]);
+	for (const id of codexDisabledPlugins) if (installed.get(id) !== false) disableCodexPlugin(id);
+}
+
+// `codex plugin` has no disable command, so this sets `enabled = false` in the plugin's config.toml table.
+function disableCodexPlugin(id: string) {
+	const path = join(home, '.codex/config.toml');
+	const lines = readFileSync(path, 'utf8').split('\n');
+	const header = lines.indexOf(`[plugins."${id}"]`);
+	if (header === -1) lines.push('', `[plugins."${id}"]`, 'enabled = false');
+	else {
+		const end = lines.findIndex((line, i) => i > header && line.startsWith('['));
+		const enabled = lines.slice(header + 1, end === -1 ? undefined : end).findIndex(line => /^enabled\s*=/.test(line));
+		if (enabled === -1) lines.splice(header + 1, 0, 'enabled = false');
+		else lines[header + 1 + enabled] = 'enabled = false';
+	}
+	if (!dryRun) writeFileSync(path, lines.join('\n'));
+	report('disable', 'disabled', `${id} in ${path}`);
 }
 
 function syncT3Pstack() {
