@@ -6,6 +6,8 @@ Avoid writing code comments unless they are really valuable. Really valuable cod
 
 when comitting code use the `AI_COMITTER_NAME='your-model-name-and-version' gai <conventional commit message>` (a script on PATH, `~/bin/gai`, that runs `git commit -m ...` with proper attribution, so it works in non-interactive shells). example `AI_COMITTER_NAME=opus-4.6 gai 'feat: ...'`
 
+Always use `bun` (not npm, yarn, pnpm, or node) unless a repo or I specify otherwise.
+
 Prefer using `trash` instead of `rm` (it works exactly the same as `rm` but moves the files to the trash so they can be recovered in case of error)
 
 @~/.claude/pstack-models.md
