@@ -121,9 +121,6 @@
       "async": false
     }
   ],
-  "projectAutoPullOverrides": {
-    "b6d85039-9525-40fc-b74f-51fc40c0d879": true
-  },
   "defaultModelSelection": {
     "instanceId": "claudeAgent",
     "model": "claude-opus-5-5",
@@ -133,20 +130,6 @@
         "value": "high"
       }
     ]
-  },
-  "projectSettingsOverrides": {
-    "608c7582-2d48-4dea-8e54-c97c0deb8a93": {
-      "defaultThreadEnvMode": "worktree"
-    },
-    "b6d85039-9525-40fc-b74f-51fc40c0d879": {
-      "defaultModelSelection": {
-        "instanceId": "claudeAgent",
-        "model": "claude-opus-5-5"
-      },
-      "defaultThreadEnvMode": "worktree",
-      "defaultAutoPull": true,
-      "pullRequestMergeMethod": "squash"
-    }
   },
   "projectSettingsFolded": true,
   "enableAgentDeviceAccess": true,

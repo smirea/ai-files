@@ -14,23 +14,24 @@ It symlinks each file to where the tools read it It is safe to rerun. A real fil
 | `t3-pstack/models.md` | `~/.config/t3-pstack/models.md`, `~/.claude/t3-pstack-models.md`, `~/.codex/t3-pstack-models.md` (t3-pstack's model sheet; `setup.sh` also installs the [t3-pstack](https://github.com/chhoumann/t3-pstack) plugin) |
 | `claude/hooks/*` | `~/.claude/hooks/` (`setup.sh` also registers each in `~/.claude/settings.json`) |
 | `skills/<name>/` | `~/.claude/skills/<name>` (Claude Code), `~/.agents/skills/<name>` (Codex) |
-| `t3/settings.json`, `t3/client-settings.json`, `t3/keybindings.json` | `~/.t3/userdata/` (T3 Code's server settings, app settings, and keybindings) |
+| `t3/client-settings.json`, `t3/keybindings.json` | `~/.t3/userdata/` (T3 Code's app settings and keybindings) |
 | `t3/pre-commit` | `.git/hooks/pre-commit` (runs `t3/sync.ts check-secrets`) |
 
 ## T3 Code
 
-`setup.sh` links T3 Code's settings into `t3/`, so a change made in the T3 UI on any machine shows up here as a diff to commit. T3 writes through the links and reloads `settings.json` and `keybindings.json` when they change. It reads `client-settings.json` only at launch: after pulling a change to it, restart T3 Code. Otherwise the next UI change on that machine writes its old copy back.
+T3 Code keeps its setup in `~/.t3/userdata/`. `setup.sh` links `client-settings.json` and `keybindings.json` into `t3/`, so a change made in the T3 UI shows up here as a diff to commit. T3 reloads `keybindings.json` when it changes. It reads `client-settings.json` only at launch: after pulling a change to it, restart T3 Code. Otherwise the next UI change on that machine writes its old copy back.
 
-Then `setup.sh` runs `t3/sync.ts apply` for what can't be a link:
+`settings.json` can't be a link. Its project overrides are keyed by project id, each machine gives the same repo a different id, and T3 deletes overrides for ids it doesn't know. `t3/sync.ts` copies it instead:
 
-- **Project overrides.** T3 keys `projectSettingsOverrides` and `projectAutoPullOverrides` by project id, and each machine gives the same repo a different id. `t3/projects.json` maps each machine's ids to a hash of the project's path. `apply` copies another machine's overrides to this machine's id for the same path, and warns when two copies differ.
-- **Desktop settings.** `t3/desktop-settings.json` holds the shared keys of `~/.t3/userdata/desktop-settings.json` (the rest is window placement). The app rewrites that file from memory, so `apply` merges these keys only while T3 Code is quit.
-- **Secrets.** The repo is public. T3 moves secrets into its secret store and leaves `""` or `••••••` in the file. `apply` and the pre-commit hook refuse any other value in a secret field.
-- **Providers.** `apply` warns when an enabled provider's binary is not on T3's PATH.
+- `t3/sync.ts capture` copies this machine's `settings.json` into `t3/settings.json`, and its project overrides into `t3/projects.json`, keyed by a hash of each project's path. Run it after changing T3 settings, then commit.
+- `t3/sync.ts apply` writes them back into this machine's `settings.json` under its own project ids, and keeps the old file as `settings.json.bak-<time>`. `setup.sh` runs it, so after pulling, rerun `./setup.sh`. A change that was never captured is overwritten (it stays in the backup).
 
-`t3/sync.ts apply --dry-run` prints what would change.
+`apply` also:
 
-A new skill only needs a folder under `skills/` and a rerun of `setup.sh`. A new link target goes in `setup.sh`.
+- merges `t3/desktop-settings.json`, the shared keys of `~/.t3/userdata/desktop-settings.json` (the rest is window placement). The app rewrites that file from memory, so `apply` merges them only while T3 Code is quit.
+- warns when an enabled provider's binary is not on T3's PATH.
+
+The repo is public. T3 moves secrets into its secret store and leaves `""` or `••••••` in the file. `capture`, `apply`, and the pre-commit hook refuse any other value in a secret field. Add `--dry-run` to `capture` or `apply` to print what would change.
 
 ## task-orchestrator
 

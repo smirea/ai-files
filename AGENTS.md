@@ -6,7 +6,7 @@ Stefan's agent configuration for this machine, kept in one place and symlinked t
 - `skills/<name>/` holds personal skills, linked into `~/.claude/skills` and `~/.agents/skills`. A skill that needs repo-specific settings reads them from a file in that repo, as `task-orchestrator` reads `.agents/task-orchestrator.md`.
 - `claude/` holds Claude Code-only files (hooks).
 - `t3-pstack/models.md` is the t3-pstack model sheet. Check edits with `node <plugin root>/skills/setup-pstack/scripts/t3-sheet.mjs t3-pstack/models.md <catalog.json>`, or rerun `/t3-pstack:setup-pstack`.
-- `t3/` holds T3 Code's settings, linked into `~/.t3/userdata/`, and `t3/sync.ts`, which syncs the parts a link can't share. The README's T3 Code section explains each.
+- `t3/` holds T3 Code's settings. Two files are linked into `~/.t3/userdata/`; `settings.json` is copied by `t3/sync.ts capture` and `apply`. The README's T3 Code section explains why.
 - `setup.sh` creates every link. Rerun it after adding a skill or a link target, and add the target to `setup.sh` and the README table.
 
 A CLI more than one skill or repo could use, such as `procrastimate`, goes in `~/code/scripts`, which puts it on PATH; its `AGENTS.md` has the rules. A script only one skill needs lives in that skill's `scripts/`, with no dependencies, and follows the same rules: `--help`, a usage error that prints the help, `--dry-run` on anything with side effects, and errors that name the fix.

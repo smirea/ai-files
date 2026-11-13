@@ -4,6 +4,10 @@ set -euo pipefail
 
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
+for tool in bun jq npx trash; do
+	command -v "$tool" >/dev/null || { echo "setup.sh needs $tool on PATH (bun lives in ~/.bun/bin)" >&2; exit 1; }
+done
+
 link() {
 	local source="$repo/$1" target="$2"
 	[ -e "$source" ] || { echo "missing $source" >&2; exit 1; }
@@ -37,7 +41,6 @@ link t3-pstack/models.md ~/.codex/t3-pstack-models.md
 link claude/hooks/no-agent-worktree.sh ~/.claude/hooks/no-agent-worktree.sh
 link claude/hooks/no-hook-skipping.ts ~/.claude/hooks/no-hook-skipping.ts
 t3_userdata="${T3CODE_HOME:-$HOME/.t3}/userdata"
-link t3/settings.json "$t3_userdata/settings.json"
 link t3/client-settings.json "$t3_userdata/client-settings.json"
 link t3/keybindings.json "$t3_userdata/keybindings.json"
 link t3/pre-commit "$repo/.git/hooks/pre-commit"

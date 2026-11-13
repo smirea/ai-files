@@ -1,30 +1,45 @@
 {
-  "05dda3ad-1d23-4be7-b16d-1f9b0fe9e1ef": {
-    "0ae87c38-44eb-4123-a612-2b7fcbb6c193": "6647e907c1092dba",
-    "1d87492e-d3a7-406c-8d91-3bc8b63e9073": "e4ffb775c112e5df",
-    "2c5fe19e-084a-4fa6-8731-c4c776e988ea": "5d7b2724b57423d7",
-    "3607d197-9c05-479d-80d6-71caa4c352df": "6f02e9e0d54590e3",
-    "364ead49-3341-4fce-b4e8-7c191c14262b": "c93bcbc620cf3819",
-    "7784ca01-1bba-494d-8103-f1f87f743c0a": "05fca9ab308c230b",
-    "8ffb3904-579a-4be1-bae3-a3ab90a87ba0": "0a343f439fe6e974",
-    "91d1ca2b-efd3-44b2-9a71-a08a1fab377b": "898ba264dcbd0eab",
-    "a8a0e431-0c6a-4997-92bc-0b959a9e8752": "baba4a03b47019ab",
-    "acdb8d8d-5b62-452f-a233-587871aa0fcb": "db314bbafeaf9a50",
-    "c04065cf-6945-4aa4-8e95-0a5e3b1b0d18": "4a96cc6f418298e3",
-    "da23b5be-93f6-4a46-b103-615402bfb448": "05587d77ac65afe7",
-    "dca86e06-ef94-4c98-bbe2-e16799a31fd8": "f5064288084c903e",
-    "eb2ddad2-3d22-44ac-9ba2-ffc7ada27bb8": "69366e302b0f75ba",
-    "ed524e4c-cb2a-4830-ae7e-cb4d35b4449f": "5f9368a64169283e",
-    "f4d96067-976b-4ab3-8f77-6d139c5ec0d4": "541c29d2414cc044",
-    "f68e5bad-70fb-40bf-b2b7-30495a2632a2": "ca06cf4da23b0a33",
-    "fd97eb7c-0da6-463c-a1a6-2af265f440cd": "5f59630cf5a8ef52",
-    "fee1e0a3-86af-4f99-b904-908657eaa9d9": "b90b4cc1203afb5d"
+  "05587d77ac65afe7": {
+    "projectSettingsOverrides": {
+      "defaultThreadEnvMode": "worktree"
+    }
   },
-  "a6939446-ddb0-42ce-b6ec-ec8066cc0dcd": {
-    "4150a47f-571e-4158-851d-a58f8c8784fb": "5f9368a64169283e",
-    "608c7582-2d48-4dea-8e54-c97c0deb8a93": "05587d77ac65afe7",
-    "7b467f2f-4cc2-4ccb-8027-3e9b479bc301": "6647e907c1092dba",
-    "948a7112-9697-45b6-8706-41a9cf88b8b8": "ca06cf4da23b0a33",
-    "b6d85039-9525-40fc-b74f-51fc40c0d879": "4a96cc6f418298e3"
+  "4a96cc6f418298e3": {
+    "projectSettingsOverrides": {
+      "defaultModelSelection": {
+        "instanceId": "claudeAgent",
+        "model": "claude-opus-5-5"
+      },
+      "defaultThreadEnvMode": "worktree",
+      "defaultAutoPull": true,
+      "pullRequestMergeMethod": "squash"
+    },
+    "projectAutoPullOverrides": true
+  },
+  "b90b4cc1203afb5d": {
+    "projectSettingsOverrides": {
+      "defaultModelSelection": {
+        "instanceId": "claudeAgent",
+        "model": "claude-fable-5-2",
+        "options": [
+          {
+            "id": "effort",
+            "value": "high"
+          }
+        ]
+      },
+      "defaultThreadEnvMode": "local",
+      "sidebarAutoSettleAfterDays": null
+    }
+  },
+  "db314bbafeaf9a50": {
+    "projectSettingsOverrides": {
+      "sidebarAutoSettleOnMerge": false
+    }
+  },
+  "f5064288084c903e": {
+    "projectSettingsOverrides": {
+      "defaultThreadEnvMode": "local"
+    }
   }
 }
