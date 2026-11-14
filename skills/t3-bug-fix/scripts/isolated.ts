@@ -29,7 +29,7 @@ const fail = (message: string): never => {
 };
 
 let args = Bun.argv.slice(2);
-if (args.includes('--help') || args.includes('-h')) {
+if (args[0] === '--help' || args[0] === '-h') {
   console.log(usage);
   process.exit(0);
 }
@@ -47,6 +47,11 @@ if (!lstatSync(gitPath).isDirectory())
 const shared = join(homedir(), 'code', 't3code');
 if (existsSync(shared) && realpathSync(dir) === realpathSync(shared))
   fail(`${dir} is the shared T3 Code checkout; make a fresh clone under ~/code/t3code-bugs/`);
+for (const file of ['.env', join('infra', 'relay', '.env')]) {
+  const path = join(dir, file);
+  if (existsSync(path) && lstatSync(path).isSymbolicLink())
+    fail(`${path} is a symlink, likely to another checkout's env with the shared dev auth token; run: trash ${path}`);
+}
 const upstream = Bun.spawnSync(['git', '-C', dir, 'remote', 'get-url', 'upstream']).stdout.toString().trim();
 if (!/[/:]pingdotgg\/t3code(\.git)?$/.test(upstream))
   fail(`${dir} has no upstream remote for pingdotgg/t3code (got "${upstream}"); run: git -C ${dir} remote add upstream git@github.com:pingdotgg/t3code.git`);
