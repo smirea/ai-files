@@ -22,7 +22,7 @@ It symlinks each file to where the tools read it, installs the global skills, an
 
 | Skills | Installed as |
 |---|---|
-| `skills/<name>/` (personal: `task-orchestrator`, `x-twitter`) | links in `~/.claude/skills` (Claude Code), `~/.agents/skills` (Codex, Cursor, OpenCode), `~/.gemini/config/skills` (Antigravity) |
+| `skills/<name>/` (personal: `task-orchestrator`, `t3-bug-fix`, `x-twitter`) | links in `~/.claude/skills` (Claude Code), `~/.agents/skills` (Codex, Cursor, OpenCode), `~/.gemini/config/skills` (Antigravity) |
 | [t3-pstack](https://github.com/chhoumann/t3-pstack) | Claude Code and Codex plugin, through its own installer |
 | Cloudflare ([cloudflare/skills](https://github.com/cloudflare/skills)), `untangle-codebase` ([caldoai/skills](https://github.com/caldoai/skills)), Sentry | Claude Code and Codex plugins |
 | `frontend-design` | Claude Code plugin (turned off in Codex) |
