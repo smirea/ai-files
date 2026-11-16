@@ -9,7 +9,7 @@ Bug: $ARGUMENTS
 
 If the harness didn't fill that in, the description is the rest of the user's message. If there is none, stop and ask for one.
 
-The order is the point. T3 Code's maintainers run bots that turn new issues into PRs within minutes: issue [#31153](https://github.com/pingdotgg/t3code/issues/31153) got a maintainer PR ([#31174](https://github.com/pingdotgg/t3code/pull/31174)) 36 minutes after it was filed, and it was kept over ours ([#31159](https://github.com/pingdotgg/t3code/pull/31159)). So the fix is finished, reviewed, and sitting on the fork before anything appears upstream, and the issue and the upstream PR go out in the same minute.
+The order is the point. T3 Code's maintainers run bots that turn new issues into PRs within minutes: issue [#31153](https://github.com/pingdotgg/t3code/issues/31153) got a maintainer PR ([#31174](https://github.com/pingdotgg/t3code/pull/31174)) 36 minutes after it was filed, and it was kept over ours ([#31159](https://github.com/pingdotgg/t3code/pull/31159)). A PR with no issue fares no better: [#31052](https://github.com/pingdotgg/t3code/pull/31052) sat for 8 days until a maintainer opened the same fix ([#34781](https://github.com/pingdotgg/t3code/pull/34781)), merged it in 21 minutes, and closed ours as superseded. [#37507](https://github.com/pingdotgg/t3code/pull/37507), filed with its issue and before/after evidence, merged within the hour. So the fix is finished, reviewed, and sitting on the fork before anything appears upstream, and the issue and the upstream PR go out in the same minute.
 
 ## Links
 
