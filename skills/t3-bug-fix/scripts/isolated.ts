@@ -20,8 +20,8 @@ upstream remote pointing at pingdotgg/t3code. The command runs from <clone-dir>.
 
 Examples:
   isolated.ts ~/code/t3code-bugs/foo vp i --frozen-lockfile -- --yes
-  isolated.ts ~/code/t3code-bugs/foo vp run dev -- --dry-run
-  isolated.ts ~/code/t3code-bugs/foo vp run migrate-dev-db -- --base-dir ~/code/t3code-bugs/foo/.t3`;
+  isolated.ts ~/code/t3code-bugs/foo node scripts/dev-runner.ts dev --dry-run
+  isolated.ts ~/code/t3code-bugs/foo node apps/server/scripts/migrate-dev-db.ts --base-dir ~/code/t3code-bugs/foo/.t3`;
 
 const fail = (message: string): never => {
   console.error(`isolated.ts: ${message}`);
