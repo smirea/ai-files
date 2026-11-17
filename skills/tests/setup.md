@@ -21,6 +21,13 @@ Use the fastest tool for each job. Every check is a package script, and the hook
 
 Don't add eslint, prettier, the JavaScript `tsc`, jest, vitest, Playwright or `xcodebuild test`.
 
+Four things the move to these tools needs:
+
+- `bun check` follows TypeScript 7, which loads no `@types` package by default. Set `"types": ["bun"]` in `tsconfig.json`.
+- Name the script `typecheck`. `bun check` runs a package script named `check` when one exists, and on a Bun too old to have the command that loops forever. Pin Bun in `.bun-version` and `packageManager`.
+- oxlint loads only `.oxlintrc.json`. It ignores a file named `oxlint.json`, and the repo then lints with the defaults.
+- `svelte-kit sync` needs the JavaScript API that TypeScript 7 dropped, so a SvelteKit app keeps `typescript` 6 beside `svelte-check-native`.
+
 ## Where logic is tested
 
 - **TypeScript.** Logic lives in a plain module that imports no framework. Its test is a `*.test.ts` file beside it, run by `bun test`.
@@ -44,7 +51,9 @@ When a suite passes 5 seconds, delete or speed up tests first. Add selection by 
 
 A check gives the same result from a clean checkout. A test that reads a generated file regenerates it inside the script the hook and CI both call. A stale ignored file once failed three Swift tests on a green commit.
 
-There is no pre-push hook. It reruns what pre-commit just ran.
+Every hook job that runs tests starts with `unset $(git rev-parse --local-env-vars)`. Git exports `GIT_DIR` and `GIT_INDEX_FILE` to hooks, so a test that runs git in a temp directory acts on the real repository. One such test set `core.bare` on a shared checkout.
+
+No test runs at pre-push, because it would rerun what pre-commit just ran. A check on what a push publishes, such as a changeset or a changelog entry, may live there.
 
 Nothing in a hook starts a browser, a simulator or a server, or uses the network.
 

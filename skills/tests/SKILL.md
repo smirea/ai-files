@@ -58,7 +58,7 @@ A test you touch that fails the bar above is deleted in the same change. List ev
 
 `setup.md` in this folder has the tools, the hook and CI layout, and the measurements behind them. Read it before you add a check or set up a repo.
 
-- **pre-commit** runs format, lint and typecheck with the fastest tool the repo has, then the whole logic suite. The budget is 10 seconds in total. Nothing in a hook starts a browser, a simulator or a server. A step over budget gets a faster tool or fewer tests. It is never skipped. There is no pre-push hook.
+- **pre-commit** runs format, lint and typecheck with the fastest tool the repo has, then the whole logic suite. The budget is 10 seconds in total. Nothing in a hook starts a browser, a simulator or a server. A step over budget gets a faster tool or fewer tests. It is never skipped. No test runs at pre-push.
 - **CI** runs the same checks over the whole repo, each as its own parallel job, in under 2 minutes. A CI failure the hook could have caught is a hook bug, so fix the hook.
 - **iOS** logic worth testing lives in a `Core` Swift package with no UI or device framework imports (SwiftUI, UIKit, HealthKit, WidgetKit, ActivityKit), and runs under `swift test` on the Mac. The app target has no test target, and no test builds the app or boots a simulator. A logic type that needs a colour, an icon or a view gets it from an extension in the app target. Logic that cannot run without the app host is verified in the running app instead.
 
