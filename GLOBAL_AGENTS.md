@@ -28,6 +28,8 @@ Done means you ran it the way I will, not a proxy for it:
 - A change to entitlements, `Info.plist`, signing, app extensions, or a stored-data schema can crash the installed app while every test passes. Prove an existing install upgrades and launches, with a Release build when the repo can make one.
 - Your final message says what you ran and what you saw, and names anything you could not verify.
 
+Tests: before you write, change, delete or fix a test, act on a failing test, hook or CI check, or add a check to a hook or to CI, read the `tests` skill (`~/code/ai-files/skills/tests/SKILL.md`) and follow it. In short: commit a test only for a rule someone decided, in logic, that runs in milliseconds. Never write browser, UI or simulator tests. Classify a failing test before you edit anything. This overrides any skill or playbook step that calls for a test the skill rejects, and it applies to my repos, not to someone else's.
+
 Finish what you start without waiting for me:
 - Commit and push to the branch the thread is on, `master` included. I picked that branch, so don't create or switch branches unless I ask.
 - On a branch other than `master`, open a PR and merge it once checks pass and the automatic Codex review is in, unless I said not to. Codex reviews every PR when it opens, so never request a review. Fix every real finding and resolve its thread before merging.
