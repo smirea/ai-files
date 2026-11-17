@@ -39,6 +39,13 @@ Finish what you start without waiting for me:
 
 Environment variables: store every env var you create or change in `env-manager` (the `.env` schema plus its values in every environment it applies to, such as `dev` and `prod`), never only in a local file, a cloud console, or a host's secret store. Push a non-breaking env change (a new variable, a new optional value, a rotated key the code reads the same way) right away, without asking: `env-manager up`, then whatever the project uses to sync hosts (for example `bun scripts/secrets.ts push` for Worker secrets). A breaking change (a rename, a removal, or a value the deployed code cannot handle) ships together with the code that needs it.
 
+`env-manager` is a global tool on my machines (`bun add -g @stefan.inc/env-manager`), not part of any project:
+- Never add it as a dependency, and never install or run it in CI or a build.
+- Commit what it generates: the `env.ts` readers and, for an Xcode target, `Config/check-env.sh`, which runs as the target's first build phase. They hold no values, and they are what fails, naming the variable, when the environment is incomplete.
+- A required variable carries a harmless default in the tracked `.env` (a local URL, a port). A secret stays optional there, and the app's own config requires it in production.
+- CI takes the defaults from the tracked `.env`, which Bun loads for scripts run from the repository root. A script that runs from a subdirectory, and xcodebuild, read the workflow's `env:` instead, so list the required defaults there. An xcconfig includes generated files with `#include?`.
+- A job that needs a credential takes it from a repository secret. Push those with `env-manager sync github <env> --only <NAMES>` (add `--dry-run` first to see the names).
+
 Worktrees and simulators in T3 Code:
 - Automatic, so don't do it by hand: T3 runs `agent-t3-worktree setup` when it creates a worktree (dependencies, the worktree's own ports, offline env files, the repo's `worktree:setup` script). Session start and the commit hook rerun it when something is missing. When a thread settles, which merging its PR does, `agent-t3-worktree settle` stops its servers and simulators, drops build caches, and removes merged worktrees with their branches and simulators.
 - Yours: never create worktrees yourself (`git worktree add`, the `Agent` tool's isolation); use `delegate_task` with `isolation: "worktree"`. If `agent-t3-worktree check` fails, fix what it prints. Before your last turn, stop servers you started and trash your `/tmp` scratch. Leave the tree clean: an untracked file keeps the worktree from being removed.
