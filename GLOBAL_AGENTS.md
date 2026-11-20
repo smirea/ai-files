@@ -58,3 +58,36 @@ When you mention a ProcrastiMate task to me (in chat, a PR, a commit, a doc, or 
 Never create a GitHub issue unless I explicitly told you to, in this conversation or in the repo's own instructions (its AGENTS.md, CLAUDE.md, or skills). Delegated children follow the same rule. Never file a bug report on a repo I don't own, such as an upstream tool or library; mention it in one short line only if it blocked you or is a meaningful bug, otherwise skip it.
 
 FYI: GitHub CLI now supports image uploads if needed via `gh issue create|edit|comment --attach ./img.png#alt`
+
+<!-- scripts-fyi:start -->
+FYI: Personal CLI scripts live in `~/code/scripts` (on PATH in `~/bin`); run `<script> --help` or check `~/code/scripts` to investigate further. Available scripts (auto-updated from `smirea/scripts`):
+- `gai` / `git-ai-cim` [Generate a conventional commit message with Gemini or commit with AI attribution.]
+- `git-worktree` / `wt` [Create, list, switch, merge, and remove personal git worktrees under ~/worktrees.]
+- `agent-t3-worktree` [Set up, check, settle, gc, and tear down T3 Code agent worktrees.]
+- `agent-simulator` [Claim, throttle, stop, and garbage-collect per-worktree iOS simulators.]
+- `pr-ship` [Drive the current branch's open PR through CI and Codex review to merge.]
+- `procrastimate` [Query and update ProcrastiMate tasks, comments, labels, and links via the agent API.]
+- `git-invite-ai-to-repos` [Invite the AI GitHub account to owner repos, accept invites, and mute its notifications.]
+- `whoop-pull` [Export WHOOP strain, recovery, sleep, workout, and app-API metrics.]
+- `garmin` [Pull Garmin Connect daily and intraday metrics, compare strain with WHOOP, and manage activities.]
+- `macrofactor` [Export MacroFactor nutrition logs from the local macOS app cache.]
+- `workouts` [Export and log MacroFactor Workouts history and programs.]
+- `voice-memo-parse` [Export Apple Voice Memos with transcripts and Gemini highlights.]
+- `anylist` [Read and edit AnyList shopping lists and favorites.]
+- `convex-manage` [Create, restart, open dashboards for, and delete local self-hosted Convex deployments.]
+- `google-maps` [Search Google Places and fetch place details and reviews as JSON.]
+- `cookunity` [Fetch CookUnity meal catalogs and macros for a delivery date.]
+- `222` [List upcoming 222 social event invites and available events.]
+- `airbnb` [Read Airbnb reservations and wishlists as Markdown.]
+- `bgstats` [Read, record, and sync board game plays in the local BG Stats database.]
+- `clocktracker` [Fetch Blood on the Clocktower plays from clocktracker.app and optionally sync them to BG Stats.]
+- `cron-bgstats-sync` [Daily cron job that syncs new ClockTracker plays into BG Stats.]
+- `email-inbox` [List and read emails saved by the email-save Worker.]
+- `sms-inbox` [List and read saved SMS messages from the sms-inbox API.]
+- `iphone-deploy` [Build Release iOS apps to install on a paired iPhone or upload an install link.]
+- `x` [Read X posts, threads, profiles, timelines, bookmarks, and recent search via the official API.]
+- `repo-sync` [Sync ~/code git repos across peer Macs, register them in T3 Code, and fast-forward them.]
+- `localias-peer` [Expose a peer Mac's localias dev servers locally over an SSH tunnel.]
+- `fork-sync` [Rebase configured third-party forks onto upstream, force-push, and reinstall them.]
+- `cron` [Run nightly Mac cleanup (worktrees, containers, caches, Trash) and tool/CLI/skill updates.]
+<!-- scripts-fyi:end -->
