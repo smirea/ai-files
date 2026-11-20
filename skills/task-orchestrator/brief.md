@@ -33,7 +33,7 @@ This file holds the rules every repo shares. The `# Worker` part of `.agents/tas
 ## PR
 
 - Open one PR whose description starts with the `# Tasks being addressed` section the brief gives you, verbatim. Attach screenshots with `gh pr create --attach <file>` (UI changes only, 2 to 4). Then call `link_pull_request` with the PR URL.
-- Loop the `ship` command in the foreground with a 600000 ms tool timeout. Its last line is `pr-ship exit <n>`:
+- Loop the `ship` command in the foreground with a 600000 ms tool timeout. A child can't use `watch_pull_request`, so this loop is how you wait. Its last line is `pr-ship exit <n>`:
   - `0`: merged.
   - `1`: fix the failing checks, or fix or answer each review thread and resolve it. Then push and rerun. If a failing check also fails on master or other PRs, rerun it once with `gh run rerun --failed`; if it fails again, fix it in this PR. End with `blocked` and the run link only when the cause is outside this repo.
   - `2`: another job landed first. Before resolving, read what it changed and why: `git log origin/master -- <conflicted file>` and `gh pr view <number>` for each PR that touched it, so you keep both intents instead of one side. Rebase onto `origin/master`, rerun only the checks that cover the conflicted files, push, rerun. During a rebase, `--theirs` is your branch and `--ours` is master.
