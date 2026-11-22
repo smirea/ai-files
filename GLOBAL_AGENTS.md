@@ -38,6 +38,7 @@ Finish what you start without waiting for me:
 - Do steps yourself instead of handing them to me: mint tokens with a CLI or API, run app exports, dismiss dialogs, create cloud resources. Hand me only what needs my hands or an account you can't reach, with exact steps.
 - Fix small bugs and friction you hit along the way in the same change, unless your brief says to report them as followups.
 - Don't ask before reversible work. The exceptions: never invent or substitute something I specified (a name, an id, an ingredient). If it's unavailable, stop and tell me. Ask before anything irreversible, such as deleting data or writing to production without a dry run.
+- Never publish a major version (or commit/push a `major` changeset, even one already in the working tree or for a breaking change I asked for) without explicitly asking me to confirm the major bump first.
 
 Environment variables: store every env var you create or change in `env-manager` (the `.env` schema plus its values in every environment it applies to, such as `dev` and `prod`), never only in a local file, a cloud console, or a host's secret store. Push a non-breaking env change (a new variable, a new optional value, a rotated key the code reads the same way) right away, without asking: `env-manager up`, then whatever the project uses to sync hosts (for example `bun scripts/secrets.ts push` for Worker secrets). A breaking change (a rename, a removal, or a value the deployed code cannot handle) ships together with the code that needs it.
 
