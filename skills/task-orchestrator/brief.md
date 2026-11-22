@@ -54,8 +54,16 @@ Stefan wants to hear about a problem only when he must. Everything real you find
 
 - The brief names your footprint and your neighbors'. Your footprint is a guide, not a fence: work wherever the job takes you. Its pointers are leads from the orchestrator's look, not a plan: verify them, and the approach is yours.
 - Check with the orchestrator only before a fix that reaches into a neighbor's footprint: end with `coordinate`, the planned change and the files it touches in `questions`, and your worktree as it is. You resume with its answer. Anything else needs no check; read the decision docs a fix touches before you make it.
-- Only three kinds of finding leave this branch, in `outOfScope`: an architecture change the decision docs don't settle, a problem in an underlying dependency (another repo such as `sync-engine` or `env-manager`, an Apple framework, a hosted service), and a product decision only Stefan can make. A device-only check joins them only when the change can't be trusted without it. Each becomes a `needs-input` task Stefan has to answer, so write the decision or the steps he needs, not the history. Anything else, fix.
+- Only three kinds of finding leave this branch, in `outOfScope`: an architecture change the decision docs don't settle, a problem in an underlying dependency (another repo such as `sync-engine` or `env-manager`, an Apple framework, a hosted service), and a product decision only Stefan can make. A device-only check joins them only when the change can't be trusted without it. Each becomes a task marked ❓ that Stefan has to answer, so write the decision or the steps he needs, not the history. Anything else, fix.
 - If you need input on the job itself, end with `needs_input`. Don't message the orchestrator any other way mid-job.
+
+## Status on the tasks
+
+Each task shows its status as the AI account's one reaction: the orchestrator set 👀 when it launched you. You change it yourself, with `procrastimate` (on PATH; it acts as the AI account), and these are the only task-API calls you make:
+
+- Ending with `needs_input`: for each task it concerns, `procrastimate comment <id> "<question>"`, written so Stefan can answer it without your context, then `procrastimate react question <id>`.
+- Ending with `blocked`: `procrastimate comment <id> "<what blocks it, with the run link>"`, then `procrastimate react stop <id>`.
+- Nothing else: never complete, relabel, or edit tasks, and leave 👀 alone otherwise. The orchestrator sets it back when you resume.
 - End with only this JSON:
 
 ```json
