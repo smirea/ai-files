@@ -20,6 +20,14 @@ This file holds the rules every repo shares. The `# Worker` part of `.agents/tas
 - Stop every server you start, by its pid. Never `pkill -f` a pattern another worktree could match: one worker's `pkill` once stopped its siblings' dev servers. Don't chain `sleep` before another command, because a hook blocks it.
 - Never use `git stash`; it is shared with every worktree. Use a WIP commit. For a baseline on master, `git worktree add` a throwaway checkout instead. Use `trash`, not `rm`.
 - The machine is loaded, so run only the tests that cover the change. A timeout that passes when rerun alone is load; a failure that repeats is yours.
+
+## Waiting on the Mac
+
+A busy or full Mac is never `blocked`, never a task comment, and never Stefan's to fix.
+
+- When a simulator boot or `agent-simulator wait` exits 3, rerun it. Between reruns, do every part of the job that doesn't need the simulator.
+- Keep waiting for up to 1 hour in total. Then commit your work, push the branch, and end with `waiting`. Put the reason (CPU, booted simulators, or disk) and what is left in `questions`. Leave the task's reaction alone: the orchestrator resumes you once there is room.
+- If the disk is full ("No space left on device"), trash the build folders of your own worktree that you can rebuild, such as DerivedData. If that isn't enough, end with `waiting` and the reason disk: the orchestrator frees the rest.
 - Git hooks can't be skipped (a Claude Code hook blocks it). A failing hook gets its cause fixed in this PR. A flaky test is a bad test: fix why it flakes, and never add retries or sleeps. "Fails only in this environment" is a bug to fix too, not a reason to move on.
 
 ## Done means
@@ -38,6 +46,7 @@ This file holds the rules every repo shares. The `# Worker` part of `.agents/tas
   - `1`: fix the failing checks, or fix or answer each review thread and resolve it. Then push and rerun. If a failing check also fails on master or other PRs, rerun it once with `gh run rerun --failed`; if it fails again, fix it in this PR. End with `blocked` and the run link only when the cause is outside this repo.
   - `2`: another job landed first. Before resolving, read what it changed and why: `git log origin/master -- <conflicted file>` and `gh pr view <number>` for each PR that touched it, so you keep both intents instead of one side. Rebase onto `origin/master`, rerun only the checks that cover the conflicted files, push, rerun. During a rebase, `--theirs` is your branch and `--ours` is master.
   - `3`: rerun.
+- When the review bot can't review (Codex out of quota, another bot's usage or rate limit), the `ship` command runs a local review in its place. It exits 3 for the 5 to 15 minutes that review takes, and its findings arrive as review threads like the bot's. It is never a reason for `blocked` or a question to Stefan.
 - Wait on PR checks only with the `ship` command, never `gh run watch`. Treat review-bot comments skeptically: fix real bugs, and dismiss noise with a concrete reason in your reply.
 - A job the brief marks as research, or "don't merge": open a draft PR, skip the `ship` command, and end with `needs_input`, the findings in `summary`, and the decisions you need in `questions`.
 
@@ -54,7 +63,10 @@ Stefan wants to hear about a problem only when he must. Everything real you find
 
 - The brief names your footprint and your neighbors'. Your footprint is a guide, not a fence: work wherever the job takes you. Its pointers are leads from the orchestrator's look, not a plan: verify them, and the approach is yours.
 - Check with the orchestrator only before a fix that reaches into a neighbor's footprint: end with `coordinate`, the planned change and the files it touches in `questions`, and your worktree as it is. You resume with its answer. Anything else needs no check; read the decision docs a fix touches before you make it.
-- Only three kinds of finding leave this branch, in `outOfScope`: an architecture change the decision docs don't settle, a problem in an underlying dependency (another repo such as `sync-engine` or `env-manager`, an Apple framework, a hosted service), and a product decision only Stefan can make. A device-only check joins them only when the change can't be trusted without it. Each becomes a task marked ❓ that Stefan has to answer, so write the decision or the steps he needs, not the history. Anything else, fix.
+- Decide product questions yourself. When a task leaves a choice open, pick the reading that Stefan's words, his feedback image, and the decision docs imply. Record it in the area's decision doc, and name it in the PR and in `summary` so he can overrule it. A choice goes to him only when it is hard to undo (data loss, a migration, a public contract), costs money, or contradicts what he asked.
+- Stefan's own code is in scope: every repo under `github.com/smirea/*` and `github.com/smirea-ai/*`, and every `@stefan.inc/*` package. First confirm that the change belongs there and not in this repo. Then don't hesitate when it simplifies or improves the fix significantly, or when it blocks you. End with `dependency`, putting the repo, the change, and why in `questions`, and leave your worktree as it is. The orchestrator runs that job in the other repo, under that repo's own `AGENTS.md`, and resumes you with the merged commit or released version. Bump to it, handling whatever the update brings.
+- A device-only check (the `# Worker` part lists what the simulator can't prove) goes in `verification`, never into a task. It joins `outOfScope` only when the change can't ship without it.
+- Only these findings leave this branch, in `outOfScope`: an architecture change the decision docs don't settle, a problem in third-party code (an Apple framework, a hosted service, someone else's package), a product decision that meets the bar above, and a device check the change can't ship without. Each becomes a task marked ❓ that Stefan has to answer, so write the decision or the steps he needs, not the history. Anything else, fix.
 - If you need input on the job itself, end with `needs_input`. Don't message the orchestrator any other way mid-job.
 
 ## Status on the tasks
@@ -62,10 +74,11 @@ Stefan wants to hear about a problem only when he must. Everything real you find
 Each task shows its status as the AI account's one reaction: the orchestrator set 👀 when it launched you. You change it yourself, with `procrastimate` (on PATH; it acts as the AI account), and these are the only task-API calls you make:
 
 - Ending with `needs_input`: for each task it concerns, `procrastimate comment <id> "<question>"`, written so Stefan can answer it without your context, then `procrastimate react question <id>`.
-- Ending with `blocked`: `procrastimate comment <id> "<what blocks it, with the run link>"`, then `procrastimate react stop <id>`.
+- Ending with `blocked`, which is only for a cause outside Stefan's repos that waiting can't fix (never machine load, disk, or a review bot's quota): `procrastimate comment <id> "<what blocks it, with the run link>"`, then `procrastimate react stop <id>`.
+- Ending with `waiting`, `dependency`, or `coordinate`: no task call.
 - Nothing else: never complete, relabel, or edit tasks, and leave 👀 alone otherwise. The orchestrator sets it back when you resume.
 - End with only this JSON:
 
 ```json
-{"status": "merged" | "coordinate" | "needs_input" | "blocked", "pr": "<url or null>", "branch": "...", "worktree": "<absolute path>", "tasks": {"done": ["<id>"], "not_done": [{"id": "...", "reason": "..."}]}, "summary": "<2-4 sentences: what changed, clients covered>", "verification": "<what you ran, what you saw, what you could not verify>", "questions": "<for coordinate/needs_input/blocked>", "outOfScope": [{"title": "...", "description": "...", "kind": "architecture" | "dependency" | "product" | "device-check", "relatedTaskId": "..."}]}
+{"status": "merged" | "coordinate" | "dependency" | "waiting" | "needs_input" | "blocked", "pr": "<url or null>", "branch": "...", "worktree": "<absolute path>", "tasks": {"done": ["<id>"], "not_done": [{"id": "...", "reason": "..."}]}, "summary": "<2-4 sentences: what changed, clients covered>", "verification": "<what you ran, what you saw, what you could not verify>", "questions": "<for coordinate/dependency/waiting/needs_input/blocked>", "outOfScope": [{"title": "...", "description": "...", "kind": "architecture" | "third-party" | "product" | "device-check", "relatedTaskId": "..."}]}
 ```
