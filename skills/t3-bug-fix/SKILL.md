@@ -24,7 +24,7 @@ Order alone doesn't get a merge. Within minutes of opening, each upstream PR is 
 
 ## 1. Reproduce on the latest nightly
 
-1. Pick a short kebab-case slug for the bug. Find the newest nightly: `gh release list -R pingdotgg/t3code --limit 20 --json tagName --jq '[.[] | select(.tagName | test("-nightly\\."))][0].tagName'`. Earlier runs end before their PR does, so trash each `~/code/t3code-bugs/<dir>` whose branch's upstream PR has merged or closed (`gh pr list -R pingdotgg/t3code --head <branch> --state all`), after checking it has no uncommitted or unpushed work. Run step 6 on each of those PRs first: they settled after their own run ended, so their outcome hasn't been learned from yet.
+1. Pick a short kebab-case slug for the bug. Find the newest nightly: `gh release list -R pingdotgg/t3code --limit 20 --json tagName --jq '[.[] | select(.tagName | test("-nightly\\."))][0].tagName'`. Earlier runs end before their PR does, so trash each `~/code/t3code-bugs/<dir>` whose branch's upstream PR has merged or closed (`gh pr list -R pingdotgg/t3code --head <branch> --state all`), after checking it has no uncommitted or unpushed work.
 2. Make an isolated instance: a standalone clone in `~/code/t3code-bugs/<slug>` that shares no state, ports, env, or credentials with the T3 Code you are running in or any other checkout. `--dissociate` copies the borrowed objects, so the clone doesn't depend on `~/code/t3code` afterwards:
    ```
    D=~/code/t3code-bugs/<slug>
@@ -114,7 +114,7 @@ Every lesson in this skill came from a past run's outcome, so end each run by re
    - The upstream PR and issue: every comment, review, label change, and the final state (`gh pr view <n> -R pingdotgg/t3code --comments --json state,labels,reviews,comments,mergedAt,closedAt`, and `gh api repos/pingdotgg/t3code/pulls/<n>/comments` for inline threads).
    - What maintainers or the factory changed on the branch: diff our last pushed head against the merged or final head (`git -C $D fetch upstream pull/<n>/head && git -C $D diff <our-head> FETCH_HEAD`). Code they cut, rewrote, or added is the clearest signal.
    - When closed: which PR was kept instead, when it opened relative to our run, and what it did differently.
-   - The fork-PR review findings, the intent check's verdict against how maintainers treated the bug, and every correction or question the user raised in the run's thread (`t3_thread_search` finds an earlier run's thread by its `T3 Bugfix:` title).
+   - The fork-PR review findings, the intent check's verdict against how maintainers treated the bug, and every correction or question the user raised in this thread.
 2. For each signal, ask what this skill should have made us do differently: a check that would have caught it earlier, a step that cost time for nothing, or advice that turned out wrong. A one-off with no repeatable cause teaches nothing; leave it out.
 3. Edit `~/code/ai-files/skills/t3-bug-fix/SKILL.md` for each real lesson. Change the step where the mistake would have been avoided, rather than appending a rule here, and cite the PR as the existing evidence does. Remove or correct advice the outcome contradicted. Keep the edit as short as the lesson. Commit to the ai-files `master` with a `docs(t3-bug-fix): ...` title and push.
 4. Say in the final message what you learned and what changed in the skill, or that the run taught nothing new.
