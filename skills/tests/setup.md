@@ -12,14 +12,14 @@ Use the fastest tool for each job. Every check is a package script, and the hook
 
 | Job | Tool | Measured |
 |---|---|---|
-| Lint, format | oxlint, then oxfmt | median 0.5 s per run |
+| Lint | oxlint | median 0.1 s per run |
 | Type check, TypeScript | `bun check` | median 0.8 s per run |
 | Type check, Svelte | `svelte-check-native` | |
 | Tests, TypeScript | `bun test` | 2,384 tests in 3.2 s; 124 tests in 1.4 s |
 | Compile and tests, Swift | `swift test` on the Mac | 99 tests in 2.7 s warm |
 | App build, Swift | `xcodebuild build` for a generic simulator | median 249 s in CI |
 
-Don't add eslint, prettier, the JavaScript `tsc`, jest, vitest, Playwright or `xcodebuild test`.
+Don't add eslint, prettier, oxfmt, the JavaScript `tsc`, jest, vitest, Playwright or `xcodebuild test`. Keep formatting out of generated repos; oxlint's `correctness` category (with default `typescript`, `unicorn`, and `oxc` plugins) handles bug detection without style or warning noise.
 
 Four things the move to these tools needs:
 
@@ -40,7 +40,7 @@ Four things the move to these tools needs:
 
 One parallel group runs these, and the whole hook has 10 seconds on a warm machine:
 
-1. Lint and format fixes on the staged files, restaged.
+1. Lint fixes on the staged JS/TS/Svelte files, restaged.
 2. The type check over the whole project.
 3. The whole TypeScript test suite.
 4. `swift test`, when a Swift file is staged.
