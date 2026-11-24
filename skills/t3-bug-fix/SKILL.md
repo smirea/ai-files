@@ -24,11 +24,11 @@ Order alone doesn't get a merge. Within minutes of opening, each upstream PR is 
 
 ## Attribution
 
-The PR body (the fork draft and the upstream PR) opens with an info block naming the model that wrote it, so reviewers know an agent wrote it. The issue and comments don't carry it. Use your own model name and version as your system prompt gives it, never a placeholder or a guessed one:
+The PR body (the fork draft and the upstream PR) opens with an info block naming the model that wrote it, so reviewers know an agent wrote it. The issue and comments don't carry it.:
 
 ```
 > [!NOTE]
-> Opus 5.5 writing on behalf of Stefan.
+> <model name> writing on behalf of Stefan.
 ```
 
 ## 1. Reproduce on the latest nightly
