@@ -24,7 +24,7 @@ Order alone doesn't get a merge. Within minutes of opening, each upstream PR is 
 
 ## Attribution
 
-The PR body (the fork draft and the upstream PR) opens with an info block naming the model that wrote it, so reviewers know an agent wrote it. The issue and comments don't carry it.:
+The PR body (the fork draft and the upstream PR) opens with an info block naming the model that wrote it, so reviewers know an agent wrote it (the issue and comments don't carry it):
 
 ```
 > [!NOTE]
