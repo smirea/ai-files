@@ -13,11 +13,13 @@ In T3 Code, start child tasks with the t3-code `delegate_task` tool (use `isolat
 Never use subagents or delegates to write code unless I explicitly ask for one. Write all code yourself, in the main thread. This overrides any skill or playbook that says to delegate implementation, including pstack's. Subagents are fine for review, research, and competing candidates (arena, architect).
 
 When I do ask for a coding delegate:
+
 - Use `delegate_task` with `isolation: "worktree"`. Never give the `Agent` tool `isolation: "worktree"`: it skips the setup script and blocks ordinary shell commands.
 - The child writes and verifies its own code, and never delegates further.
 - While async children run, end your turn. Don't poll or post "waiting" updates.
 
 Done means you ran it the way I will, not a proxy for it:
+
 - Run the real entry point (`./scripts/export.ts`, not `bun scripts/export.ts`), the built or deployed app, and the real interaction: tap the button, submit the form, read the output. A screenshot proves a layout, not a behavior. Check web UI at desktop and phone widths.
 - Never make a path the default, push it, or call it done before it has worked once end to end. If it can't work, say so instead of building it.
 - "I can't test this" is a problem to solve with the simulator, T3's device and preview tools, UI automation, or computer use, not a finding. Only a check that needs a physical device comes to me, as exact steps.
@@ -27,6 +29,7 @@ Done means you ran it the way I will, not a proxy for it:
 Tests: before you write, change, delete or fix a test, act on a failing test, hook or CI check, or add a check to a hook or to CI, read the `tests` skill (`~/code/ai-files/skills/tests/SKILL.md`) and follow it. In short: commit a test only for a rule someone decided, in logic, that runs in milliseconds. Never write browser, UI or simulator tests. Classify a failing test before you edit anything. This overrides any skill or playbook step that calls for a test the skill rejects, and it applies to my repos, not to someone else's.
 
 Finish what you start without waiting for me:
+
 - Commit locally as you go, and push once at the end. Commit at real checkpoints, such as a finished piece of a feature, or one commit per bug when you fix several, not after every edit. Push only when the whole task is done and ready for review, because a push starts CI, the Codex review and other workflows.
 - Both go to the branch the thread is on, `master` included. I picked that branch, so don't create or switch branches unless I ask.
 - On a branch other than `master`, open a PR and merge it once checks pass and the automatic Codex review is in, unless I said not to. Codex reviews every PR when it opens, so never request a review. When the review bot can't review (out of quota), `pr-ship` runs a local review in its place, so never wait on me for it. Fix every real finding and resolve its thread before merging. In a main thread, wait with `watch_pull_request` (`until: "merged"`) and run `pr-ship --once --merge` on each wake: its exit code says what to fix and it merges when ready. A delegated child can't watch, so it loops `pr-ship --merge` in the foreground until it exits 0.
@@ -40,6 +43,7 @@ Finish what you start without waiting for me:
 Environment variables: store every env var you create or change in `env-manager` (the `.env` schema plus its values in every environment it applies to, such as `dev` and `prod`), never only in a local file, a cloud console, or a host's secret store. Push a non-breaking env change (a new variable, a new optional value, a rotated key the code reads the same way) right away, without asking: `env-manager up`, then whatever the project uses to sync hosts (for example `bun scripts/secrets.ts push` for Worker secrets). A breaking change (a rename, a removal, or a value the deployed code cannot handle) ships together with the code that needs it.
 
 `env-manager` is a global tool on my machines (`bun add -g @stefan.inc/env-manager`), not part of any project:
+
 - Never add it as a dependency, and never install or run it in CI or a build.
 - Commit what it generates: the `env.ts` readers and, for an Xcode target, `Config/check-env.sh`, which runs as the target's first build phase. They hold no values, and they are what fails, naming the variable, when the environment is incomplete.
 - A required variable carries a harmless default in the tracked `.env` (a local URL, a port). A secret stays optional there, and the app's own config requires it in production.
@@ -47,6 +51,7 @@ Environment variables: store every env var you create or change in `env-manager`
 - A job that needs a credential takes it from a repository secret. Push those with `env-manager sync github <env> --only <NAMES>` (add `--dry-run` first to see the names).
 
 Worktrees and simulators in T3 Code:
+
 - Automatic, so don't do it by hand: T3 runs `agent-t3-worktree setup` when it creates a worktree (dependencies, the worktree's own ports, offline env files, the repo's `worktree:setup` script). Session start and the commit hook rerun it when something is missing. When a thread settles, which merging its PR does, `agent-t3-worktree settle` stops its servers and simulators, drops build caches, and removes merged worktrees with their branches and simulators.
 - Yours: never create worktrees yourself (`git worktree add`, the `Agent` tool's isolation); use `delegate_task` with `isolation: "worktree"`. If `agent-t3-worktree check` fails, fix what it prints. Before your last turn, stop servers you started and trash your `/tmp` scratch. Leave the tree clean: an untracked file keeps the worktree from being removed.
 - iOS: `agent-simulator udid` prints your worktree's simulator, and boots wait for room on the Mac (exit 3 means rerun). Drive it only with the command `device_open` returns, tapping by label (`press 'label="Save"' --settle`), never with a wrapper of your own.
@@ -58,7 +63,9 @@ Never create a GitHub issue unless I explicitly told you to, in this conversatio
 FYI: GitHub CLI now supports image uploads if needed via `gh issue create|edit|comment --attach ./img.png#alt`
 
 <!-- scripts-fyi:start -->
+
 FYI: Personal CLI scripts live in `~/code/scripts` (on PATH in `~/bin`); run `<script> --help` or check `~/code/scripts` to investigate further. Available scripts (auto-updated from `smirea/scripts`):
+
 - `git-worktree` / `wt` [Create, list, switch, merge, and remove personal git worktrees under ~/worktrees.]
 - `agent-t3-worktree` [Set up, check, settle, gc, and tear down T3 Code agent worktrees.]
 - `agent-simulator` [Claim, throttle, stop, and garbage-collect per-worktree iOS simulators.]
@@ -87,4 +94,5 @@ FYI: Personal CLI scripts live in `~/code/scripts` (on PATH in `~/bin`); run `<s
 - `localias-peer` [Expose a peer Mac's localias dev servers locally over an SSH tunnel.]
 - `fork-sync` [Rebase configured third-party forks onto upstream, force-push, and reinstall them.]
 - `cron` [Run nightly Mac cleanup (worktrees, containers, caches, Trash) and tool/CLI/skill updates.]
+
 <!-- scripts-fyi:end -->
