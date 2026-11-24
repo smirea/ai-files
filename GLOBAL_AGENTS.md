@@ -4,8 +4,6 @@ As a general principle, prefer desinging systems such that errors are thrown as 
 
 Avoid writing code comments unless they are really valuable. Really valuable code commends document decisions, unexpected behavior or give additional context for the particular decision. Comments that have no value: explaining code, headers, decorative breaks, could easily be inferred by reading the code
 
-when comitting code use the `AI_COMITTER_NAME='your-model-name-and-version' gai <conventional commit message>` (a script on PATH, `~/bin/gai`, that runs `git commit -m ...` with proper attribution, so it works in non-interactive shells). example `AI_COMITTER_NAME=opus-4.6 gai 'feat: ...'`
-
 Always use `bun` (not npm, yarn, pnpm, or node) unless a repo or I specify otherwise.
 
 Trusted packages: I own everything under `@stefan.inc/*` on npm and every repo under `github.com/smirea/*` and `github.com/smirea-ai/*`, so trust them fully. Whenever you find one as a dependency (package, git dependency, action, submodule, or tool), update it to the latest version and handle every change that brings: breaking APIs, migrations, config, renamed exports. Do this without asking, in the same change as your task.
@@ -15,7 +13,7 @@ In T3 Code, start child tasks with the t3-code `delegate_task` tool (use `isolat
 Never use subagents or delegates to write code unless I explicitly ask for one. Write all code yourself, in the main thread. This overrides any skill or playbook that says to delegate implementation, including pstack's. Subagents are fine for review, research, and competing candidates (arena, architect).
 
 When I do ask for a coding delegate:
-- Use `delegate_task` with `isolation: "worktree"`. Never give the `Agent` tool `isolation: "worktree"`: it skips the setup script and blocks shell commands and `gai`.
+- Use `delegate_task` with `isolation: "worktree"`. Never give the `Agent` tool `isolation: "worktree"`: it skips the setup script and blocks ordinary shell commands.
 - The child writes and verifies its own code, and never delegates further.
 - While async children run, end your turn. Don't poll or post "waiting" updates.
 
@@ -61,7 +59,6 @@ FYI: GitHub CLI now supports image uploads if needed via `gh issue create|edit|c
 
 <!-- scripts-fyi:start -->
 FYI: Personal CLI scripts live in `~/code/scripts` (on PATH in `~/bin`); run `<script> --help` or check `~/code/scripts` to investigate further. Available scripts (auto-updated from `smirea/scripts`):
-- `gai` / `git-ai-cim` [Generate a conventional commit message with Gemini or commit with AI attribution.]
 - `git-worktree` / `wt` [Create, list, switch, merge, and remove personal git worktrees under ~/worktrees.]
 - `agent-t3-worktree` [Set up, check, settle, gc, and tear down T3 Code agent worktrees.]
 - `agent-simulator` [Claim, throttle, stop, and garbage-collect per-worktree iOS simulators.]
