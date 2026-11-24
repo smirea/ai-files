@@ -22,6 +22,15 @@ Order alone doesn't get a merge. Within minutes of opening, each upstream PR is 
 - Search: [issues](https://github.com/pingdotgg/t3code/issues?q=is%3Aissue), [PRs](https://github.com/pingdotgg/t3code/pulls?q=is%3Apr).
 - Repo skills for driving the app: [test-t3-app](https://github.com/pingdotgg/t3code/blob/main/.agents/skills/test-t3-app/SKILL.md) (web and desktop), [test-t3-mobile](https://github.com/pingdotgg/t3code/blob/main/.agents/skills/test-t3-mobile/SKILL.md).
 
+## Attribution
+
+Everything this run writes on GitHub under the user's account (the issue, both PR bodies, and every comment or review reply) opens with an info block naming the model that wrote it, so readers know an agent wrote it. Use your own model name and version as your system prompt gives it, never a placeholder or a guessed one:
+
+```
+> [!NOTE]
+> Opus 5.5 writing on behalf of Stefan.
+```
+
 ## 1. Reproduce on the latest nightly
 
 1. Pick a short kebab-case slug for the bug. Find the newest nightly: `gh release list -R pingdotgg/t3code --limit 20 --json tagName --jq '[.[] | select(.tagName | test("-nightly\\."))][0].tagName'`. Earlier runs end before their PR does, so trash each `~/code/t3code-bugs/<dir>` whose branch's upstream PR has merged or closed (`gh pr list -R pingdotgg/t3code --head <branch> --state all`), after checking it has no uncommitted or unpushed work.
@@ -80,7 +89,7 @@ If an open issue or PR covers it, or a merged one already fixed it, stop. CONTRI
    With a scenario from step 1, prove it: `$I $D vp run scenarios:prove scripts/scenarios/<slug>.e2e.ts --base origin/main`. It exits 0 only when the scenario fails on base and passes on head; exit 3 means the scenario broke on its way to the bug, so fix it and rerun. Its `markdown` (in `scripts/.e2e/prove/proof.json`) is the before/after table for the PR. Leave the scenario file out of the commit (upstream commits one with few fixes) and put its source in a `<details>` block in the PR. Without a scenario, re-run the step 1 repro on the fixed build and capture the after state.
    Then list what the fix changes for people who never had the bug, and run each of those paths in the real app on the fix. #39509 stopped sending `authenticate` on every signed-in turn as well. Its PR opened with no signed-in turn in the app and no Settings sign-in on the fix, and the factory named the Settings sign-in as unverified.
 5. Commit with a conventional title in plain language, such as `fix(web): new threads no longer spike CPU`. Push to the fork.
-6. Open a draft PR inside the fork, so nothing shows upstream yet: `gh pr create -R smirea/t3code --base main --head fix/<slug> --draft`, body following the upstream PR template (Problem, Change, Scope, Verification; leave Scope's issue link as a placeholder), ending with the model and harness that did the work. Attach every capture the issue or the upstream PR will show with `--attach`, embedded where it belongs, such as a before/after table. `--attach` only works on repos you can write to, so these `https://github.com/user-attachments/...` URLs are the ones step 4 reuses upstream. Link the PR in T3 (`link_pull_request`).
+6. Open a draft PR inside the fork, so nothing shows upstream yet: `gh pr create -R smirea/t3code --base main --head fix/<slug> --draft`, body following the upstream PR template (Problem, Change, Scope, Verification; leave Scope's issue link as a placeholder), with the attribution block. Attach every capture the issue or the upstream PR will show with `--attach`, embedded where it belongs, such as a before/after table. `--attach` only works on repos you can write to, so these `https://github.com/user-attachments/...` URLs are the ones step 4 reuses upstream. Link the PR in T3 (`link_pull_request`).
 
 ## 4. Review, then go public
 
