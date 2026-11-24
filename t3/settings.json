@@ -86,11 +86,7 @@
       "modelOrder": []
     },
     "antigravity": {
-      "hiddenModels": [
-        "claude-opus-5-5",
-        "claude-sonnet-5-5",
-        "gpt-oss-120b-medium"
-      ],
+      "hiddenModels": ["claude-opus-5-5", "claude-sonnet-5-5", "gpt-oss-120b-medium"],
       "modelOrder": []
     }
   },

@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
-import { existsSync, lstatSync, realpathSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { basename, join, resolve } from 'node:path';
+import { existsSync, lstatSync, realpathSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, join, resolve } from "node:path";
 
 const usage = `Usage: isolated.ts [--dry-run] <clone-dir> <command> [args...]
 
@@ -29,52 +29,64 @@ const fail = (message: string): never => {
 };
 
 let args = Bun.argv.slice(2);
-if (args[0] === '--help' || args[0] === '-h') {
+if (args[0] === "--help" || args[0] === "-h") {
   console.log(usage);
   process.exit(0);
 }
-const dryRun = args[0] === '--dry-run';
+const dryRun = args[0] === "--dry-run";
 if (dryRun) args = args.slice(1);
 const [dirArg, ...command] = args;
-if (!dirArg || command.length === 0) fail(`missing ${dirArg ? 'command' : '<clone-dir>'}\n\n${usage}`);
+if (!dirArg || command.length === 0)
+  fail(`missing ${dirArg ? "command" : "<clone-dir>"}\n\n${usage}`);
 
 const dir = resolve(dirArg!);
 if (!existsSync(dir)) fail(`${dir} does not exist; clone it first (SKILL.md step 1)`);
-const gitPath = join(dir, '.git');
+const gitPath = join(dir, ".git");
 if (!existsSync(gitPath)) fail(`${dir} is not a git checkout`);
 if (!lstatSync(gitPath).isDirectory())
-  fail(`${dir} is a git worktree; use a standalone clone so it shares nothing with another checkout`);
-const shared = join(homedir(), 'code', 't3code');
+  fail(
+    `${dir} is a git worktree; use a standalone clone so it shares nothing with another checkout`,
+  );
+const shared = join(homedir(), "code", "t3code");
 if (existsSync(shared) && realpathSync(dir) === realpathSync(shared))
   fail(`${dir} is the shared T3 Code checkout; make a fresh clone under ~/code/t3code-bugs/`);
-for (const file of ['.env', join('infra', 'relay', '.env')]) {
+for (const file of [".env", join("infra", "relay", ".env")]) {
   const path = join(dir, file);
   if (existsSync(path) && lstatSync(path).isSymbolicLink())
-    fail(`${path} is a symlink, likely to another checkout's env with the shared dev auth token; run: trash ${path}`);
+    fail(
+      `${path} is a symlink, likely to another checkout's env with the shared dev auth token; run: trash ${path}`,
+    );
 }
-const upstream = Bun.spawnSync(['git', '-C', dir, 'remote', 'get-url', 'upstream']).stdout.toString().trim();
+const upstream = Bun.spawnSync(["git", "-C", dir, "remote", "get-url", "upstream"])
+  .stdout.toString()
+  .trim();
 if (!/[/:]pingdotgg\/t3code(\.git)?$/.test(upstream))
-  fail(`${dir} has no upstream remote for pingdotgg/t3code (got "${upstream}"); run: git -C ${dir} remote add upstream git@github.com:pingdotgg/t3code.git`);
+  fail(
+    `${dir} has no upstream remote for pingdotgg/t3code (got "${upstream}"); run: git -C ${dir} remote add upstream git@github.com:pingdotgg/t3code.git`,
+  );
 
 const dropped = Object.keys(process.env).filter(
-  (key) => key.startsWith('T3CODE_') || ['VITE_HTTP_URL', 'VITE_WS_URL', 'VITE_DEV_SERVER_URL', 'PORT'].includes(key),
+  (key) =>
+    key.startsWith("T3CODE_") ||
+    ["VITE_HTTP_URL", "VITE_WS_URL", "VITE_DEV_SERVER_URL", "PORT"].includes(key),
 );
 const env: Record<string, string | undefined> = { ...process.env };
 for (const key of dropped) delete env[key];
 const set = {
-  T3CODE_HOME: join(dir, '.t3'),
+  T3CODE_HOME: join(dir, ".t3"),
   T3CODE_DEV_INSTANCE: `t3-bug-fix-${basename(dir)}`,
 };
 Object.assign(env, set);
 
 if (dryRun) {
   console.log(`cwd:   ${dir}`);
-  console.log(`unset: ${dropped.join(' ') || '(none)'}`);
+  console.log(`unset: ${dropped.join(" ") || "(none)"}`);
   for (const [key, value] of Object.entries(set)) console.log(`set:   ${key}=${value}`);
-  console.log(`run:   ${command.join(' ')}`);
+  console.log(`run:   ${command.join(" ")}`);
   process.exit(0);
 }
 
-const child = Bun.spawn(command, { cwd: dir, env, stdio: ['inherit', 'inherit', 'inherit'] });
-for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) process.on(signal, () => child.kill(signal));
+const child = Bun.spawn(command, { cwd: dir, env, stdio: ["inherit", "inherit", "inherit"] });
+for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"] as const)
+  process.on(signal, () => child.kill(signal));
 process.exit(await child.exited);

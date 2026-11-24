@@ -58,9 +58,11 @@ The PR body (the fork draft and the upstream PR) opens with an info block naming
 ## 2. Search for prior art
 
 Search open and closed issues and PRs, with several phrasings (symptom, component, error text, file names you found):
+
 ```
 gh search issues --repo pingdotgg/t3code --include-prs "<terms>" --limit 30 --json number,title,state,url,isPullRequest,updatedAt
 ```
+
 Read every plausible hit, not just titles. Also check the commits between the nightly and `main`. The search is cheap, so once you know the bug well enough to search for it, you may do it before cloning in step 1.
 
 If an open issue or PR covers it, or a merged one already fixed it, stop. CONTRIBUTING prefers a +1 to a second PR: report the links, and offer to comment with the repro and evidence. Commenting is public, so ask first.
@@ -75,6 +77,7 @@ If an open issue or PR covers it, or a merged one already fixed it, stop. CONTRI
    - CONTRIBUTING's rule on features
 
    It returns a verdict of `bug`, `intended`, or `unclear`, each point with a link or `path:line`. Step 4 acts on the verdict.
+
 2. `gh repo sync smirea/t3code -b main` so the fork's `main` matches upstream (stop and tell the user if it has diverged), then `git -C $D fetch origin && git -C $D switch -c fix/<slug> origin/main && $I $D vp i --frozen-lockfile -- --yes`.
 3. Find the root cause before writing the fix. Then, before writing it, list the PRs on the bug's code path: the files you would change and the ones you read to find the cause.
    ```

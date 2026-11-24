@@ -8,25 +8,25 @@ My global agent instructions and skills, linked into every agent tool on this ma
 
 It symlinks each file to where the tools read it, installs the global skills, and syncs T3 Code's settings. It is safe to rerun. A real file in a target's place goes to the Trash first.
 
-| File | Linked to |
-|---|---|
-| `GLOBAL_AGENTS.md` | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.gemini/GEMINI.md` |
-| `t3-pstack/models.md` | `~/.config/t3-pstack/models.md`, `~/.claude/t3-pstack-models.md`, `~/.codex/t3-pstack-models.md` (t3-pstack's model sheet) |
-| `claude/hooks/*` | `~/.claude/hooks/` (`setup.sh` also registers each in `~/.claude/settings.json`) |
-| `t3/client-settings.json`, `t3/keybindings.json` | `~/.t3/userdata/` (T3 Code's app settings and keybindings) |
-| `t3/pre-commit` | `.git/hooks/pre-commit` (runs `t3/sync.ts check-secrets`) |
+| File                                             | Linked to                                                                                                                  |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `GLOBAL_AGENTS.md`                               | `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.config/opencode/AGENTS.md`, `~/.gemini/GEMINI.md`                         |
+| `t3-pstack/models.md`                            | `~/.config/t3-pstack/models.md`, `~/.claude/t3-pstack-models.md`, `~/.codex/t3-pstack-models.md` (t3-pstack's model sheet) |
+| `claude/hooks/*`                                 | `~/.claude/hooks/` (`setup.sh` also registers each in `~/.claude/settings.json`)                                           |
+| `t3/client-settings.json`, `t3/keybindings.json` | `~/.t3/userdata/` (T3 Code's app settings and keybindings)                                                                 |
+| `t3/pre-commit`                                  | `.git/hooks/pre-commit` (runs `t3/sync.ts check-secrets`)                                                                  |
 
 ## Skills
 
 `./setup-skills.ts` (run by `setup.sh`) sets up the skills every T3 Code provider reads, and keeps them updated:
 
-| Skills | Installed as |
-|---|---|
-| `skills/<name>/` (personal: `task-orchestrator`, `t3-bug-fix`, `tests`) | links in `~/.claude/skills` (Claude Code), `~/.agents/skills` (Codex, Cursor, OpenCode), `~/.gemini/config/skills` (Antigravity) |
-| [t3-pstack](https://github.com/chhoumann/t3-pstack) | Claude Code and Codex plugin, through its own installer |
-| Cloudflare ([cloudflare/skills](https://github.com/cloudflare/skills)), `untangle-codebase` ([caldoai/skills](https://github.com/caldoai/skills)), Sentry | Claude Code and Codex plugins |
-| `frontend-design` | Claude Code plugin (turned off in Codex) |
-| `cua-driver` | `cua-driver skills install`, which links its pack into each agent |
+| Skills                                                                                                                                                    | Installed as                                                                                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `skills/<name>/` (personal: `task-orchestrator`, `t3-bug-fix`, `tests`)                                                                                   | links in `~/.claude/skills` (Claude Code), `~/.agents/skills` (Codex, Cursor, OpenCode), `~/.gemini/config/skills` (Antigravity) |
+| [t3-pstack](https://github.com/chhoumann/t3-pstack)                                                                                                       | Claude Code and Codex plugin, through its own installer                                                                          |
+| Cloudflare ([cloudflare/skills](https://github.com/cloudflare/skills)), `untangle-codebase` ([caldoai/skills](https://github.com/caldoai/skills)), Sentry | Claude Code and Codex plugins                                                                                                    |
+| `frontend-design`                                                                                                                                         | Claude Code plugin (turned off in Codex)                                                                                         |
+| `cua-driver`                                                                                                                                              | `cua-driver skills install`, which links its pack into each agent                                                                |
 
 Each run updates the marketplaces and plugins, and moves anything else in those skill directories to the Trash, along with any plugin or marketplace the script doesn't list. It leaves Codex's own `openai-*` plugins alone (they ship with the app or come with the ChatGPT account), except that it turns `presentations` off, and leaves Claude Code's `~/.claude/skills/synced` (skills synced from claude.ai) alone. To add a skill, add its plugin and marketplace to `setup-skills.ts`, or a folder under `skills/`, and rerun. `--dry-run` prints what would change.
 
@@ -59,9 +59,11 @@ ship: <command that drives a PR to merge; last line `pr-ship exit <0-3>`>
 ---
 
 # Orchestrator
+
 Decision docs, natural areas, shared work, human-only tasks, known shared failures.
 
 # Worker
+
 Setup, verification, PR, and after-merge rules for this repo, including the post-merge runs a child waits on. Wins over the shared brief.
 ```
 
