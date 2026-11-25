@@ -64,7 +64,7 @@ Search open and closed issues and PRs, with several phrasings (symptom, componen
 gh search issues --repo pingdotgg/t3code --include-prs "<terms>" --limit 30 --json number,title,state,url,isPullRequest,updatedAt
 ```
 
-Read every plausible hit, not just titles. Also check the commits between the nightly and `main`. The search is cheap, so once you know the bug well enough to search for it, you may do it before cloning in step 1.
+Read every plausible hit, not just titles. Also check the commits between the nightly and `main`. The search is cheap, so once you know the bug well enough to search for it, you may do it before cloning in step 1. When the report is a failed thread, its `t3_thread_read` activity view and the provider's own session log usually name the cause without a clone: copy the log out with `sqlite3 "file:<db>?mode=ro" ".backup <scratchpad>/x.db"` (Antigravity's is `~/.t3/userdata/providers/antigravity/<profile>/antigravity-acp/conversations/<native-session>.db`, error steps are `step_type` 17) and never open it in place. On the poisoned-media run that settled the cause in minutes and the search found [#41934](https://github.com/pingdotgg/t3code/issues/41934) with [#41941](https://github.com/pingdotgg/t3code/pull/41941) waiting on exactly that evidence.
 
 If an open issue or PR covers it, or a merged one already fixed it, stop. CONTRIBUTING prefers a +1 to a second PR: report the links, and offer to comment with the repro and evidence. Commenting is public, so ask first.
 
